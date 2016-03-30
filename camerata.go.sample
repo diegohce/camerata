@@ -1,0 +1,96 @@
+package main
+
+//http://stackoverflow.com/questions/19043557/creating-a-file-in-ssh-client-for-golang
+//https://blogs.oracle.com/janp/entry/how_the_scp_protocol_works
+
+import (
+	"bytes"
+	"fmt"
+	"log"
+
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/terminal"
+)
+
+func main() {
+
+	fmt.Print("Password: ")
+	password_b, err := terminal.ReadPassword(0)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("")
+
+	password := string(password_b)
+
+	config := &ssh.ClientConfig{
+		User: "dcena",
+		Auth: []ssh.AuthMethod{
+			ssh.Password(password),
+		},
+	}
+
+	log.Println("Opening connection to bastion server")
+	bastion, err := ssh.Dial("tcp", "trustedhost.olleros:22", config)
+	if err != nil {
+		panic("Failed to dial: " + err.Error())
+	}
+	defer bastion.Close()
+	log.Println("Connected to bastion server")
+
+	log.Println("Dialing to target server")
+	client_tcp_conn, err := bastion.Dial("tcp", "callbacksd-pci.olleros:22")
+	if err != nil {
+		panic("Failed to dial: " + err.Error())
+	}
+	defer client_tcp_conn.Close()
+
+	client_conn, new_ch, req_ch, err := ssh.NewClientConn(client_tcp_conn, "callbacksd-pci.olleros:22", config)
+	if err != nil {
+		panic("Failed on NewClientConn: " + err.Error())
+	}
+
+	client := ssh.NewClient(client_conn, new_ch, req_ch)
+
+	log.Println("Connected to target server")
+
+	// Each ClientConn can support multiple interactive sessions,
+	// represented by a Session.
+	session, err := client.NewSession()
+	if err != nil {
+		panic("Failed to create session: " + err.Error())
+	}
+	defer session.Close()
+
+	log.Println("Running command as user")
+
+	// Once a Session is created, you can execute a single command on
+	// the remote side using the Run method.
+	var b bytes.Buffer
+	session.Stdout = &b
+	if err := session.Run("/usr/bin/whoami"); err != nil {
+		panic("Failed to run: " + err.Error())
+	}
+	fmt.Println(b.String())
+
+	log.Println("Running command as root")
+
+	sudoSession, err := client.NewSession()
+	if err != nil {
+		panic("Failed to create sudoSession: " + err.Error())
+	}
+	defer sudoSession.Close()
+
+	go func() {
+		w, _ := sudoSession.StdinPipe()
+		defer w.Close()
+		fmt.Fprintln(w, password)
+	}()
+
+	sudoSession.Stdout = &b
+	if err := sudoSession.Run("sudo -S /usr/bin/whoami"); err != nil {
+		panic("Failed to run: " + err.Error())
+	}
+	fmt.Println(b.String())
+
+}
