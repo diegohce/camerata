@@ -56,11 +56,32 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 	} else {
 		var err error
 
-		sshconn.bastion, err = ssh.Dial("tcp", args.Bastion, config)
+		if args.AskBastionPass {
+			fmt.Print("Bastion Password: ")
+			bastion_password_b, err := terminal.ReadPassword(0)
+			fmt.Println("")
+			if err != nil {
+				return nil, errors.CamerataError{"Error reading bastion password from terminal"}
+			}
+
+			bastion_password := string(bastion_password_b)
+			args.BastionPass = bastion_password
+		}
+
+		bastion_config := &ssh.ClientConfig{
+			User: args.BastionUser,
+			Auth: []ssh.AuthMethod{
+				ssh.Password(args.BastionPass),
+			},
+		}
+
+		fmt.Println("Dialing bastion", args.Bastion, "with user", args.BastionUser)
+		sshconn.bastion, err = ssh.Dial("tcp", args.Bastion, bastion_config)
 		if err != nil {
 			return nil, errors.CamerataConnectionError{"Failed to dial: " + err.Error()}
 		}
 
+		fmt.Println("Creating connection between", args.Bastion, "and", host)
 		var client_tcp_conn net.Conn
 		client_tcp_conn, err = sshconn.bastion.Dial("tcp", host)
 		if err != nil {

@@ -7,10 +7,18 @@ import (
 	"strings"
 )
 
+const (
+	VERSION      = "0.1.0"
+	VERSION_NAME = "Jake"
+)
+
 func main() {
 
 	args := &Arguments{}
 	args.Parse()
+
+	fmt.Printf(">>> Running Camerata v%s %s\n", VERSION, VERSION_NAME)
+	fmt.Println(">>>")
 
 	err := args.Validate()
 	if err != nil {
@@ -44,14 +52,14 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		} else {
-			fmt.Println("WhoAmI", result)
+			fmt.Println("WhoAmI @", host, result)
 		}
 
 		sudo_result, err := sshconn.SudoWhoAmI(args)
 		if err != nil {
 			panic(err.Error())
 		} else {
-			fmt.Println("SudoWhoAmI", sudo_result)
+			fmt.Println("SudoWhoAmI @", host, sudo_result)
 		}
 
 	}
