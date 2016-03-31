@@ -20,6 +20,7 @@ type Arguments struct {
 	Inventory  string
 	Module     string
 	MArguments string
+	Test       bool
 }
 
 func (me *Arguments) Parse() {
@@ -40,6 +41,8 @@ func (me *Arguments) Parse() {
 
 	flag.StringVar(&me.Module, "module", "command", "Module to run")
 	flag.StringVar(&me.MArguments, "args", "", "Module arguments")
+
+	flag.BoolVar(&me.Test, "test", false, "Runs whoami on remote host")
 
 	flag.Parse()
 }

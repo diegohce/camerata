@@ -48,19 +48,21 @@ func main() {
 		}
 		defer sshconn.Close()
 
-		if !args.Sudo {
-			result, err := sshconn.WhoAmI()
-			if err != nil {
-				panic(err.Error())
+		if args.Test {
+			if !args.Sudo {
+				result, err := sshconn.WhoAmI()
+				if err != nil {
+					panic(err.Error())
+				} else {
+					fmt.Println("WhoAmI @", host, result)
+				}
 			} else {
-				fmt.Println("WhoAmI @", host, result)
-			}
-		} else {
-			sudo_result, err := sshconn.SudoWhoAmI(args)
-			if err != nil {
-				panic(err.Error())
-			} else {
-				fmt.Println("SudoWhoAmI @", host, sudo_result)
+				sudo_result, err := sshconn.SudoWhoAmI(args)
+				if err != nil {
+					panic(err.Error())
+				} else {
+					fmt.Println("SudoWhoAmI @", host, sudo_result)
+				}
 			}
 		}
 
