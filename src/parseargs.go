@@ -3,6 +3,7 @@ package main
 import (
 	"camerata/errors"
 	"flag"
+	"strings"
 )
 
 type Arguments struct {
@@ -43,8 +44,8 @@ func (me *Arguments) Validate() error {
 	if me.User == "" {
 		return errors.CamerataArgumentsError{"User cannot be empty"}
 	}
-	if len(me.Pass) > 0 && me.AskPass {
-		return errors.CamerataArgumentsError{"--pass and --ask-pass cannot be combined"}
+	if len(me.Pass) > 0 {
+		me.AskPass = false
 	}
 
 	if len(me.Pass) == 0 && !me.AskPass {
@@ -57,6 +58,12 @@ func (me *Arguments) Validate() error {
 
 	if len(me.Inventory) == 0 && len(me.Hosts) == 0 {
 		return errors.CamerataArgumentsError{"Must define --inventory or --hosts"}
+	}
+
+	if len(me.Bastion) > 0 {
+		if strings.Index(me.Bastion, ":") < 0 {
+			me.Bastion = me.Bastion + ":22"
+		}
 	}
 
 	return nil
