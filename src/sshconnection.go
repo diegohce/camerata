@@ -12,35 +12,31 @@ import (
 )
 
 type SshConnection struct {
-	config  *ssh.ClientConfig
-	client  *ssh.Client
-	bastion *ssh.Client
+	config         *ssh.ClientConfig
+	client         *ssh.Client
+	bastion_config *ssh.ClientConfig
+	bastion        *ssh.Client
 }
 
 func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 
-	var password string
-
 	if args.AskPass {
-		fmt.Print("Password: ")
+		fmt.Print("User Password: ")
 		password_b, err := terminal.ReadPassword(0)
 		fmt.Println("")
 		if err != nil {
 			return nil, errors.CamerataError{"Error reading password from terminal"}
 		}
 
-		password = string(password_b)
+		password := string(password_b)
 		args.Pass = password
-
-	} else {
-		password = args.Pass
 
 	}
 
 	config := &ssh.ClientConfig{
 		User: args.User,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
+			ssh.Password(args.Pass),
 		},
 	}
 
@@ -68,7 +64,7 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 			args.BastionPass = bastion_password
 		}
 
-		bastion_config := &ssh.ClientConfig{
+		sshconn.bastion_config = &ssh.ClientConfig{
 			User: args.BastionUser,
 			Auth: []ssh.AuthMethod{
 				ssh.Password(args.BastionPass),
@@ -76,7 +72,7 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 		}
 
 		fmt.Println("Dialing bastion", args.Bastion, "with user", args.BastionUser)
-		sshconn.bastion, err = ssh.Dial("tcp", args.Bastion, bastion_config)
+		sshconn.bastion, err = ssh.Dial("tcp", args.Bastion, sshconn.bastion_config)
 		if err != nil {
 			return nil, errors.CamerataConnectionError{"Failed to dial: " + err.Error()}
 		}
