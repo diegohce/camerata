@@ -1,5 +1,5 @@
 GOOS=linux
-GOFILES_main=camerata.go parseargs.go
+GOFILES_main=camerata.go parseargs.go sshconnection.go
 
 
 
