@@ -6,7 +6,6 @@ import (
 	"net"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 type SshConnection struct {
@@ -17,19 +16,6 @@ type SshConnection struct {
 }
 
 func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
-
-	if args.AskPass {
-		fmt.Print(">>> User Password: ")
-		password_b, err := terminal.ReadPassword(0)
-		fmt.Println("")
-		if err != nil {
-			return nil, CamerataError{"Error reading password from terminal"}
-		}
-
-		password := string(password_b)
-		args.Pass = password
-
-	}
 
 	config := &ssh.ClientConfig{
 		User: args.User,
@@ -42,6 +28,8 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 
 	if len(args.Bastion) == 0 {
 		var err error
+
+		fmt.Println(">>> Dialing", host)
 		sshconn.client, err = ssh.Dial("tcp", host, config)
 		if err != nil {
 			return nil, CamerataConnectionError{"Failed to dial: " + err.Error()}
@@ -49,18 +37,6 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 
 	} else {
 		var err error
-
-		if args.AskBastionPass {
-			fmt.Print(">>> Bastion Password: ")
-			bastion_password_b, err := terminal.ReadPassword(0)
-			fmt.Println("")
-			if err != nil {
-				return nil, CamerataError{"Error reading bastion password from terminal"}
-			}
-
-			bastion_password := string(bastion_password_b)
-			args.BastionPass = bastion_password
-		}
 
 		sshconn.bastion_config = &ssh.ClientConfig{
 			User: args.BastionUser,

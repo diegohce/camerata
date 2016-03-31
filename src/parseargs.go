@@ -32,7 +32,7 @@ func (me *Arguments) Parse() {
 	flag.StringVar(&me.Bastion, "bastion", "", "Bastion or jumpbox server")
 	flag.StringVar(&me.BastionUser, "bastion-user", "", "Bastion or jumpbox server login user (default: same as --user)")
 	flag.StringVar(&me.BastionPass, "bastion-pass", "", "Bastion or jumpbox server password (default: same as --pass)")
-	flag.BoolVar(&me.AskBastionPass, "ask-bastion-pass", true, "Asks for password on the command line for bastion jump")
+	flag.BoolVar(&me.AskBastionPass, "ask-bastion-pass", false, "Asks for password on the command line for bastion jump")
 
 	flag.BoolVar(&me.Sudo, "sudo", false, "Run as sudo")
 
