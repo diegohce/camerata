@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 
-	"camerata/errors"
-
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -21,11 +19,11 @@ type SshConnection struct {
 func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 
 	if args.AskPass {
-		fmt.Print("User Password: ")
+		fmt.Print(">>> User Password: ")
 		password_b, err := terminal.ReadPassword(0)
 		fmt.Println("")
 		if err != nil {
-			return nil, errors.CamerataError{"Error reading password from terminal"}
+			return nil, CamerataError{"Error reading password from terminal"}
 		}
 
 		password := string(password_b)
@@ -46,18 +44,18 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 		var err error
 		sshconn.client, err = ssh.Dial("tcp", host, config)
 		if err != nil {
-			panic("Failed to dial: " + err.Error())
+			return nil, CamerataConnectionError{"Failed to dial: " + err.Error()}
 		}
 
 	} else {
 		var err error
 
 		if args.AskBastionPass {
-			fmt.Print("Bastion Password: ")
+			fmt.Print(">>> Bastion Password: ")
 			bastion_password_b, err := terminal.ReadPassword(0)
 			fmt.Println("")
 			if err != nil {
-				return nil, errors.CamerataError{"Error reading bastion password from terminal"}
+				return nil, CamerataError{"Error reading bastion password from terminal"}
 			}
 
 			bastion_password := string(bastion_password_b)
@@ -71,22 +69,22 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 			},
 		}
 
-		fmt.Println("Dialing bastion", args.Bastion, "with user", args.BastionUser)
+		fmt.Println(">>> Dialing bastion", args.Bastion, "with user", args.BastionUser)
 		sshconn.bastion, err = ssh.Dial("tcp", args.Bastion, sshconn.bastion_config)
 		if err != nil {
-			return nil, errors.CamerataConnectionError{"Failed to dial: " + err.Error()}
+			return nil, CamerataConnectionError{"Failed to dial: " + err.Error()}
 		}
 
-		fmt.Println("Creating connection between", args.Bastion, "and", host)
+		fmt.Println(">>> Creating connection between", args.Bastion, "and", host)
 		var client_tcp_conn net.Conn
 		client_tcp_conn, err = sshconn.bastion.Dial("tcp", host)
 		if err != nil {
-			return nil, errors.CamerataConnectionError{"Failed to dial: " + err.Error()}
+			return nil, CamerataConnectionError{"Failed to dial: " + err.Error()}
 		}
 
 		client_conn, new_ch, req_ch, err := ssh.NewClientConn(client_tcp_conn, host, config)
 		if err != nil {
-			return nil, errors.CamerataConnectionError{"Failed jumping from bastion to target: " + err.Error()}
+			return nil, CamerataConnectionError{"Failed jumping from bastion to target: " + err.Error()}
 		}
 
 		sshconn.client = ssh.NewClient(client_conn, new_ch, req_ch)
@@ -106,14 +104,14 @@ func (me *SshConnection) Close() {
 func (me *SshConnection) WhoAmI() (string, error) {
 	session, err := me.client.NewSession()
 	if err != nil {
-		return "", errors.CamerataRunError{"Failed to create session: " + err.Error()}
+		return "", CamerataRunError{"Failed to create session: " + err.Error()}
 	}
 	defer session.Close()
 
 	var b bytes.Buffer
 	session.Stdout = &b
 	if err := session.Run("/usr/bin/whoami"); err != nil {
-		return "", errors.CamerataRunError{"Failed to run: " + err.Error()}
+		return "", CamerataRunError{"Failed to run: " + err.Error()}
 	}
 	return b.String(), nil
 }
@@ -121,7 +119,7 @@ func (me *SshConnection) WhoAmI() (string, error) {
 func (me *SshConnection) SudoWhoAmI(args *Arguments) (string, error) {
 	session, err := me.client.NewSession()
 	if err != nil {
-		return "", errors.CamerataRunError{"Failed to create session: " + err.Error()}
+		return "", CamerataRunError{"Failed to create session: " + err.Error()}
 	}
 	defer session.Close()
 
@@ -134,7 +132,7 @@ func (me *SshConnection) SudoWhoAmI(args *Arguments) (string, error) {
 	var b bytes.Buffer
 	session.Stdout = &b
 	if err := session.Run("sudo -S /usr/bin/whoami"); err != nil {
-		return "", errors.CamerataRunError{"Failed to run: " + err.Error()}
+		return "", CamerataRunError{"Failed to run: " + err.Error()}
 	}
 	return b.String(), nil
 }

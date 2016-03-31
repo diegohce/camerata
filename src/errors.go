@@ -1,4 +1,4 @@
-package errors
+package main
 
 type CamerataError struct {
 	Message string

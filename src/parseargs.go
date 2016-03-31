@@ -1,7 +1,6 @@
 package main
 
 import (
-	"camerata/errors"
 	"flag"
 	"strings"
 )
@@ -48,22 +47,22 @@ func (me *Arguments) Parse() {
 func (me *Arguments) Validate() error {
 
 	if me.User == "" {
-		return errors.CamerataArgumentsError{"User cannot be empty"}
+		return CamerataArgumentsError{"User cannot be empty"}
 	}
 	if len(me.Pass) > 0 {
 		me.AskPass = false
 	}
 
 	if len(me.Pass) == 0 && !me.AskPass {
-		return errors.CamerataArgumentsError{"Must define --pass or --ask-pass"}
+		return CamerataArgumentsError{"Must define --pass or --ask-pass"}
 	}
 
 	if len(me.Inventory) > 0 && len(me.Hosts) > 0 {
-		return errors.CamerataArgumentsError{"--inventory and --hosts cannot be combined"}
+		return CamerataArgumentsError{"--inventory and --hosts cannot be combined"}
 	}
 
 	if len(me.Inventory) == 0 && len(me.Hosts) == 0 {
-		return errors.CamerataArgumentsError{"Must define --inventory or --hosts"}
+		return CamerataArgumentsError{"Must define --inventory or --hosts"}
 	}
 
 	if len(me.Bastion) > 0 {
