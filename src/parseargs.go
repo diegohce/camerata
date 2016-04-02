@@ -39,7 +39,7 @@ func (me *Arguments) Parse() {
 	flag.StringVar(&me.Hosts, "hosts", "", "Comma separated hosts list")
 	flag.StringVar(&me.Inventory, "inventory", "", "Inventory file")
 
-	flag.StringVar(&me.Module, "module", "command", "Module to run")
+	flag.StringVar(&me.Module, "module", "test", "Module to run")
 	flag.StringVar(&me.MArguments, "args", "", "Module arguments")
 
 	flag.BoolVar(&me.Test, "test", false, "Runs whoami on remote host")

@@ -81,6 +81,11 @@ func main() {
 			host = host + ":22"
 		}
 
+		mod, err := NewModule(host, args)
+		if err != nil {
+			panic(err.Error())
+		}
+
 		sshconn, err := NewSshConnection(host, args)
 		if err != nil {
 			fmt.Printf("%+v\n", args)
@@ -88,22 +93,8 @@ func main() {
 		}
 		defer sshconn.Close()
 
-		if args.Test {
-			if !args.Sudo {
-				result, err := sshconn.WhoAmI()
-				if err != nil {
-					panic(err.Error())
-				} else {
-					fmt.Println(">>> WhoAmI @", host, result)
-				}
-			} else {
-				sudo_result, err := sshconn.SudoWhoAmI(args)
-				if err != nil {
-					panic(err.Error())
-				} else {
-					fmt.Println(">>> SudoWhoAmI @", host, sudo_result)
-				}
-			}
+		if err := mod.(CamerataModule).Run(sshconn); err != nil {
+			panic(err.Error())
 		}
 
 	}

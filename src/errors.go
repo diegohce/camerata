@@ -25,3 +25,9 @@ type CamerataRunError CamerataError
 func (me CamerataRunError) Error() string {
 	return me.Message
 }
+
+type CamerataModuleError CamerataError
+
+func (me CamerataModuleError) Error() string {
+	return me.Message
+}

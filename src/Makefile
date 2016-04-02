@@ -1,6 +1,5 @@
 GOOS=linux
-GOFILES_main=camerata.go parseargs.go sshconnection.go errors.go
-
+GOFILES_main=camerata.go parseargs.go sshconnection.go errors.go builtin.go testmodule.go
 
 
 all: build_camerata
