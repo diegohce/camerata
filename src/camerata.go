@@ -50,7 +50,7 @@ func askpasswords(args *Arguments) error {
 func main() {
 
 	fmt.Println(">>> Hi!")
-	fmt.Printf(">>> Running Camerata v%s codename %s\n", VERSION, VERSION_NAME)
+	fmt.Printf(">>> Running Camerata v%s (%s)\n", VERSION, VERSION_NAME)
 	fmt.Println(">>>")
 
 	args := &Arguments{}

@@ -15,7 +15,6 @@ type CamerataModule interface {
 	Run() error
 }
 
-//func NewModule(host string, args *Arguments) (interface{}, error) {
 func NewModule(args *Arguments) (interface{}, error) {
 
 	switch args.Module {
