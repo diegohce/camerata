@@ -94,7 +94,9 @@ func main() {
 		defer sshconn.Close()
 
 		if err := mod.(CamerataModule).Run(sshconn); err != nil {
-			panic(err.Error())
+			//panic(err.Error())
+			fmt.Println(">>>", err)
+			os.Exit(1)
 		}
 
 	}

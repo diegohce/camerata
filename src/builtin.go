@@ -23,6 +23,11 @@ func NewModule(host string, args *Arguments) (interface{}, error) {
 			m := &TestModule{host: host, args: args}
 			return m, nil
 		}
+	case "command":
+		{
+			m := &CommandModule{host: host, args: args}
+			return m, nil
+		}
 
 	default:
 		return nil, CamerataModuleError{fmt.Sprintf("Module %s not implemented", args.Module)}
