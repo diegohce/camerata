@@ -3,6 +3,8 @@ package main
 //http://stackoverflow.com/questions/19043557/creating-a-file-in-ssh-client-for-golang
 //https://blogs.oracle.com/janp/entry/how_the_scp_protocol_works
 
+//./camerata --user dcena --hosts avinet.olleros,callbacksd-pci.olleros --bastion trustedhost.olleros --module command --args "find /opt -type d -name \".git\" | while read path; do p=\$(dirname \$path); cd \$p; echo \"\$(basename \$p) \$(git describe)\"; done"
+
 import (
 	"bytes"
 	"fmt"
