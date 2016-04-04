@@ -75,15 +75,15 @@ func main() {
 
 	askpasswords(args)
 
+	mod, err := NewModule(args)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	for _, host := range strings.Split(args.Hosts, ",") {
 		host = strings.TrimSpace(host)
 		if strings.Index(host, ":") < 0 {
 			host = host + ":22"
-		}
-
-		mod, err := NewModule(host, args)
-		if err != nil {
-			panic(err.Error())
 		}
 
 		sshconn, err := NewSshConnection(host, args)
@@ -93,8 +93,12 @@ func main() {
 		}
 		defer sshconn.Close()
 
-		if err := mod.(CamerataModule).Run(sshconn); err != nil {
-			//panic(err.Error())
+		if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
+			fmt.Println(">>>", err)
+			os.Exit(1)
+		}
+
+		if err := mod.(CamerataModule).Run(); err != nil {
 			fmt.Println(">>>", err)
 			os.Exit(1)
 		}

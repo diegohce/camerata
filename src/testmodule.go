@@ -6,17 +6,24 @@ import (
 
 type TestModule TCamerataModule
 
-func (me *TestModule) Run(sshconn *SshConnection) error {
+func (me *TestModule) Prepare(host string, sshconn *SshConnection) error {
+	me.host = host
+	me.sshconn = sshconn
+
+	return nil
+}
+
+func (me *TestModule) Run() error {
 
 	if !me.args.Sudo {
-		result, err := sshconn.WhoAmI()
+		result, err := me.sshconn.WhoAmI()
 		if err != nil {
 			panic(err.Error())
 		} else {
 			fmt.Println(">>> WhoAmI @", me.host, result)
 		}
 	} else {
-		sudo_result, err := sshconn.SudoWhoAmI(me.args)
+		sudo_result, err := me.sshconn.SudoWhoAmI(me.args)
 		if err != nil {
 			panic(err.Error())
 		} else {

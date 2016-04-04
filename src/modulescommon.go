@@ -11,21 +11,28 @@ type TCamerataModule struct {
 }
 
 type CamerataModule interface {
-	Run(*SshConnection) error
+	Prepare(string, *SshConnection) error
+	Run() error
 }
 
-func NewModule(host string, args *Arguments) (interface{}, error) {
-	//(*CamerataModule, error) {
+//func NewModule(host string, args *Arguments) (interface{}, error) {
+func NewModule(args *Arguments) (interface{}, error) {
 
 	switch args.Module {
 	case "test":
 		{
-			m := &TestModule{host: host, args: args}
+			m := &TestModule{args: args}
 			return m, nil
 		}
 	case "command":
 		{
-			m := &CommandModule{host: host, args: args}
+			m := &CommandModule{args: args}
+			return m, nil
+		}
+
+	case "copy":
+		{
+			m := &CopyModule{args: args}
 			return m, nil
 		}
 

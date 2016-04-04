@@ -7,15 +7,22 @@ import (
 
 type CommandModule TCamerataModule
 
-func (me *CommandModule) Run(sshconn *SshConnection) error {
+func (me *CommandModule) Prepare(host string, sshconn *SshConnection) error {
+	me.host = host
+	me.sshconn = sshconn
 
-	commandargs := me.args.MArguments
-
-	if len(commandargs) == 0 {
+	if len(me.args.MArguments) == 0 {
 		return CamerataModuleError{"CommandModule: Arguments cannot be empty"}
 	}
 
-	fmt.Print(">>> CommandModule >>> Executing", commandargs, "@", me.host)
+	return nil
+}
+
+func (me *CommandModule) Run() error {
+
+	commandargs := me.args.MArguments
+
+	fmt.Print(">>> CommandModule >>> Executing ", commandargs, "@", me.host)
 	if me.args.Sudo {
 		fmt.Print(" as sudo")
 	}
@@ -23,9 +30,9 @@ func (me *CommandModule) Run(sshconn *SshConnection) error {
 
 	commandline := commandargs
 
-	session, err := sshconn.client.NewSession()
+	session, err := me.sshconn.client.NewSession()
 	if err != nil {
-		panic("Failed to create sudoSession: " + err.Error())
+		panic("Failed to create session: " + err.Error())
 	}
 	defer session.Close()
 
@@ -38,6 +45,7 @@ func (me *CommandModule) Run(sshconn *SshConnection) error {
 			fmt.Fprintln(w, me.args.Pass)
 		}()
 	}
+
 	var b bytes.Buffer
 	session.Stdout = &b
 	if err := session.Run(commandline); err != nil {
