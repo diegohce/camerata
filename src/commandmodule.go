@@ -22,7 +22,7 @@ func (me *CommandModule) Run() error {
 
 	commandargs := me.args.MArguments
 
-	fmt.Print(">>> CommandModule >>> Executing ", commandargs, "@", me.host)
+	fmt.Print(">>> CommandModule >>> Executing ", commandargs, " @", me.host)
 	if me.args.Sudo {
 		fmt.Print(" as sudo")
 	}
