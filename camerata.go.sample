@@ -5,6 +5,14 @@ package main
 
 //./camerata --user dcena --hosts avinet.olleros,callbacksd-pci.olleros --bastion trustedhost.olleros --module command --args "find /opt -type d -name \".git\" | while read path; do p=\$(dirname \$path); cd \$p; echo \"\$(basename \$p) \$(git describe)\"; done"
 
+
+// TOML specs
+// https://github.com/toml-lang/toml
+// TOML lib
+// github.com/BurntSushi/toml
+
+
+
 import (
 	"bytes"
 	"fmt"
