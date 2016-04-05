@@ -15,6 +15,12 @@ type CamerataModule interface {
 	Run() error
 }
 
+var ModulesList = []string{
+	"test   : Runs \"whoami\" command on target hosts.",
+	"command: Executes --args command line on target hosts.",
+	"copy   : Sends --args source_file|dest_directory to target hosts.",
+}
+
 func NewModule(args *Arguments) (interface{}, error) {
 
 	switch args.Module {

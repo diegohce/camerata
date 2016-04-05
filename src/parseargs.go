@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"strings"
 )
 
@@ -17,11 +19,12 @@ type Arguments struct {
 	SudoNoPass     bool
 	/* SudoPass    string
 	AskSudoPass bool*/
-	Hosts      string
-	Inventory  string
-	Module     string
-	MArguments string
-	Test       bool
+	Hosts       string
+	Inventory   string
+	ModulesList bool
+	Module      string
+	MArguments  string
+	Test        bool
 }
 
 func (me *Arguments) Parse() {
@@ -41,6 +44,7 @@ func (me *Arguments) Parse() {
 	flag.StringVar(&me.Hosts, "hosts", "", "Comma separated hosts list")
 	flag.StringVar(&me.Inventory, "inventory", "", "Inventory file")
 
+	flag.BoolVar(&me.ModulesList, "modules", false, "List available modules")
 	flag.StringVar(&me.Module, "module", "test", "Module to run")
 	flag.StringVar(&me.MArguments, "args", "", "Module arguments")
 
@@ -50,6 +54,11 @@ func (me *Arguments) Parse() {
 }
 
 func (me *Arguments) Validate() error {
+
+	if me.ModulesList {
+		fmt.Println(strings.Join(ModulesList, "\n"))
+		os.Exit(0)
+	}
 
 	if me.User == "" {
 		return CamerataArgumentsError{"User cannot be empty"}
