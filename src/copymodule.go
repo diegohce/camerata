@@ -57,6 +57,10 @@ func (me *CopyModule) Run() error {
 		w, _ := session.StdinPipe()
 		defer w.Close()
 
+		if me.args.Sudo && !me.args.SudoNoPass {
+			fmt.Fprintln(w, me.args.Pass)
+		}
+
 		fmt.Fprintln(w, "C0644", fileinfo.Size(), filename)
 
 		count, _ := fp.Read(byte_buffer)
@@ -65,11 +69,14 @@ func (me *CopyModule) Run() error {
 			fmt.Fprintf(w, "%s", byte_buffer[:count])
 			count, _ = fp.Read(byte_buffer)
 		}
-		fmt.Fprint(w, "\x00")
 
+		fmt.Fprint(w, "\x00")
 	}()
 
 	scp_command := fmt.Sprintf("scp -qrt %s/%s", commandargs[1], filename)
+	if me.args.Sudo {
+		scp_command = fmt.Sprintf("sudo -S %s", scp_command)
+	}
 	//fmt.Println(">>> scp command is", scp_command)
 
 	//var b bytes.Buffer

@@ -14,6 +14,7 @@ type Arguments struct {
 	AskPass        bool
 	AskBastionPass bool
 	Sudo           bool
+	SudoNoPass     bool
 	/* SudoPass    string
 	AskSudoPass bool*/
 	Hosts      string
@@ -35,6 +36,7 @@ func (me *Arguments) Parse() {
 	flag.BoolVar(&me.AskBastionPass, "ask-bastion-pass", false, "Asks for password on the command line for bastion jump")
 
 	flag.BoolVar(&me.Sudo, "sudo", false, "Run as sudo")
+	flag.BoolVar(&me.SudoNoPass, "sudo-nopass", false, "Run as sudo without pass")
 
 	flag.StringVar(&me.Hosts, "hosts", "", "Comma separated hosts list")
 	flag.StringVar(&me.Inventory, "inventory", "", "Inventory file")

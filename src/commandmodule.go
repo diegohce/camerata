@@ -42,7 +42,9 @@ func (me *CommandModule) Run() error {
 		go func() {
 			w, _ := session.StdinPipe()
 			defer w.Close()
-			fmt.Fprintln(w, me.args.Pass)
+			if me.args.Sudo && !me.args.SudoNoPass {
+				fmt.Fprintln(w, me.args.Pass)
+			}
 		}()
 	}
 
