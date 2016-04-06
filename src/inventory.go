@@ -2,28 +2,42 @@ package main
 
 /*
 [bastion]
-host="IP:port or fqdn:port"
-user="user to use on login"
-password="*******"
+host="trustedhost.olleros"
+user="dcena"
+password=""
 
 [servers]
 
-	[servers.heymamma]
-	host="heymamma.tienda"
-	user="diego"
+	[servers.avinet]
+	host="avinet.olleros"
+	user=""
 	password=""
 	sudo=false
 	sudo_nopass=false
-	use_bastion=false
+	use_bastion=true
 
-
-	[servers.pbot01]
-	host="pbot01.laspornografas.com"
-	user="root"
+	[servers.callbacksd-pci]
+	host="callbacksd-pci.olleros"
+	user=""
 	password=""
 	sudo=false
 	sudo_nopass=false
-	use_bastion=false
+	use_bastion=true
+
+[[modules]]
+name="command"
+args='''for i in {1,2,3}
+do
+	echo "HELLO WORLD $i"
+done'''
+
+[[modules]]
+name="command"
+args='''for i in {1,2,3}
+do
+	echo "HELLO WORLD $i"
+done'''
+
 */
 
 import (
@@ -35,6 +49,7 @@ import (
 type Inventory struct {
 	Bastion BastionServer `toml:"bastion"`
 	Servers map[string]Server
+	Modules []ServerModule `toml:"modules"`
 }
 
 type BastionServer struct {
@@ -50,6 +65,11 @@ type Server struct {
 	Sudo       bool
 	SudoNoPass bool `toml:"sudo_nopass"`
 	UseBastion bool `toml:"use_bastion"`
+}
+
+type ServerModule struct {
+	Name string
+	Args string
 }
 
 func ParseInventory(inventoryfile string) (*Inventory, error) {

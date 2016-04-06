@@ -28,7 +28,7 @@ func askpasswords(args *Arguments) error {
 	}
 
 	if args.AskBastionPass {
-		fmt.Print(">>> Bastion Password: ")
+		fmt.Print(">>> Bastion Password [Enter for user pass]: ")
 		bastion_password_b, err := terminal.ReadPassword(0)
 		fmt.Println("")
 		if err != nil {
@@ -36,7 +36,11 @@ func askpasswords(args *Arguments) error {
 		}
 
 		bastion_password := string(bastion_password_b)
-		args.BastionPass = bastion_password
+		if bastion_password != "" {
+			args.BastionPass = bastion_password
+		} else {
+			args.BastionPass = args.Pass
+		}
 
 	} else {
 		args.BastionPass = args.Pass
@@ -72,15 +76,50 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
-		//fmt.Printf("%+v", inventory)
 
-		mod, err := NewModule(args)
-		if err != nil {
-			panic(err.Error())
+		//fmt.Printf("%+v\n", inventory.Modules)
+
+		//		mod, err := NewModule(args)
+		//		if err != nil {
+		//			panic(err.Error())
+		//		}
+
+		if strings.Index(inventory.Bastion.Host, ":") < 0 {
+			inventory.Bastion.Host = inventory.Bastion.Host + ":22"
 		}
 
+		passwords_saved := false
+
 		for name, server := range inventory.Servers {
-			fmt.Println("Playing", name, "from inventory")
+			fmt.Println(">>> Playing", name, "from inventory")
+
+			if server.User == "" && args.User == "" {
+				fmt.Println(">>>", CamerataArgumentsError{"No user defined on inventory file nor --user argument for " + name})
+				continue
+			}
+
+			if !passwords_saved {
+
+				if inventory.Bastion.Password == "" {
+					args.AskBastionPass = true
+				}
+				if server.Password == "" && args.Pass == "" {
+					args.AskPass = true
+				} else {
+					args.AskPass = false
+				}
+
+				askpasswords(args)
+				inventory.Bastion.Password = args.BastionPass
+				passwords_saved = true
+			}
+
+			if server.User == "" {
+				server.User = args.User
+			}
+			if server.Password == "" {
+				server.Password = args.Pass
+			}
 
 			inv_args := &Arguments{
 				User:       server.User,
@@ -106,14 +145,24 @@ func main() {
 			}
 			defer sshconn.Close()
 
-			if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
-				fmt.Println(">>>", err)
-				os.Exit(1)
-			}
+			for _, module := range inventory.Modules {
+				inv_args.Module = module.Name
+				inv_args.MArguments = module.Args
 
-			if err := mod.(CamerataModule).Run(); err != nil {
-				fmt.Println(">>>", err)
-				os.Exit(1)
+				mod, err := NewModule(inv_args)
+				if err != nil {
+					panic(err.Error())
+				}
+
+				if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
+					fmt.Println(">>>", err)
+					os.Exit(1)
+				}
+
+				if err := mod.(CamerataModule).Run(); err != nil {
+					fmt.Println(">>>", err)
+					os.Exit(1)
+				}
 			}
 			sshconn.Close()
 		}
