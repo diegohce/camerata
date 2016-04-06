@@ -68,9 +68,58 @@ func main() {
 	}
 
 	if len(args.Inventory) > 0 {
-		fmt.Println(">>> Inventory file not implemented.")
-		fmt.Println(">>> Use --hosts in the meantime.")
-		os.Exit(1)
+		inventory, err := ParseInventory(args.Inventory)
+		if err != nil {
+			panic(err.Error())
+		}
+		//fmt.Printf("%+v", inventory)
+
+		mod, err := NewModule(args)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		for name, server := range inventory.Servers {
+			fmt.Println("Playing", name, "from inventory")
+
+			inv_args := &Arguments{
+				User:       server.User,
+				Pass:       server.Password,
+				Sudo:       server.Sudo,
+				SudoNoPass: server.SudoNoPass,
+			}
+			if server.UseBastion {
+				inv_args.Bastion = inventory.Bastion.Host
+				inv_args.BastionUser = inventory.Bastion.User
+				inv_args.BastionPass = inventory.Bastion.Password
+			}
+			host := server.Host
+
+			if strings.Index(host, ":") < 0 {
+				host = host + ":22"
+			}
+
+			sshconn, err := NewSshConnection(host, inv_args)
+			if err != nil {
+				fmt.Printf("%+v\n", inv_args)
+				panic(err.Error())
+			}
+			defer sshconn.Close()
+
+			if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
+				fmt.Println(">>>", err)
+				os.Exit(1)
+			}
+
+			if err := mod.(CamerataModule).Run(); err != nil {
+				fmt.Println(">>>", err)
+				os.Exit(1)
+			}
+			sshconn.Close()
+		}
+
+		os.Exit(0)
+
 	}
 
 	askpasswords(args)

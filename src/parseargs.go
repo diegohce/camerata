@@ -60,7 +60,7 @@ func (me *Arguments) Validate() error {
 		os.Exit(0)
 	}
 
-	if me.User == "" {
+	if me.User == "" && me.Inventory == "" {
 		return CamerataArgumentsError{"User cannot be empty"}
 	}
 	if len(me.Pass) > 0 {
