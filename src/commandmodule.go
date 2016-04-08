@@ -22,11 +22,11 @@ func (me *CommandModule) Run() error {
 
 	commandargs := me.args.MArguments
 
-	fmt.Print(">>> CommandModule >>> Executing ", commandargs, " @", me.host)
+	me.stdout.Print(">>> CommandModule >>> Executing ", commandargs, " @", me.host)
 	if me.args.Sudo {
-		fmt.Print(" as sudo")
+		me.stdout.Print(" as sudo")
 	}
-	fmt.Println("")
+	me.stdout.Println("")
 
 	commandline := commandargs
 
@@ -53,7 +53,8 @@ func (me *CommandModule) Run() error {
 	if err := session.Run(commandline); err != nil {
 		panic("Failed to run: " + err.Error())
 	}
-	fmt.Println(">>> CommandModule >>>", b.String())
+	me.stdout.Print(">>> CommandModule >>>", b.String())
+	fmt.Println(b.String())
 
 	return nil
 

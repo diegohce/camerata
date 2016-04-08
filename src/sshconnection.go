@@ -13,9 +13,11 @@ type SshConnection struct {
 	client         *ssh.Client
 	bastion_config *ssh.ClientConfig
 	bastion        *ssh.Client
+	stdout         *StdoutManager
+	stderr         *StderrManager
 }
 
-func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
+func NewSshConnection(host string, args *Arguments, stdout *StdoutManager, stderr *StderrManager) (*SshConnection, error) {
 
 	config := &ssh.ClientConfig{
 		User: args.User,
@@ -24,12 +26,16 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 		},
 	}
 
-	sshconn := &SshConnection{config: config}
+	sshconn := &SshConnection{
+		config: config,
+		stdout: stdout,
+		stderr: stderr,
+	}
 
 	if len(args.Bastion) == 0 {
 		var err error
 
-		fmt.Println(">>> Dialing", host)
+		stdout.Println(">>> Dialing", host)
 		sshconn.client, err = ssh.Dial("tcp", host, config)
 		if err != nil {
 			return nil, CamerataConnectionError{"Failed to dial: " + err.Error()}
@@ -45,13 +51,13 @@ func NewSshConnection(host string, args *Arguments) (*SshConnection, error) {
 			},
 		}
 
-		fmt.Println(">>> Dialing bastion", args.Bastion, "with user", args.BastionUser)
+		stdout.Println(">>> Dialing bastion", args.Bastion, "with user", args.BastionUser)
 		sshconn.bastion, err = ssh.Dial("tcp", args.Bastion, sshconn.bastion_config)
 		if err != nil {
 			return nil, CamerataConnectionError{"Failed to dial: " + err.Error()}
 		}
 
-		fmt.Println(">>> Creating connection between", args.Bastion, "and", host)
+		stdout.Println(">>> Creating connection between", args.Bastion, "and", host)
 		var client_tcp_conn net.Conn
 		client_tcp_conn, err = sshconn.bastion.Dial("tcp", host)
 		if err != nil {

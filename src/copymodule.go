@@ -30,11 +30,11 @@ func (me *CopyModule) Run() error {
 
 	commandargs := strings.Split(me.args.MArguments, "|")
 
-	fmt.Print(">>> CopyModule >>> Copying ", me.args.MArguments, "@", me.host)
+	me.stdout.Print(">>> CopyModule >>> Copying ", me.args.MArguments, "@", me.host)
 	if me.args.Sudo {
-		fmt.Print(" as sudo")
+		me.stdout.Print(" as sudo")
 	}
-	fmt.Println("")
+	me.stdout.Println("")
 
 	session, err := me.sshconn.client.NewSession()
 	if err != nil {
@@ -43,7 +43,7 @@ func (me *CopyModule) Run() error {
 	defer session.Close()
 
 	filename := filepath.Base(commandargs[0])
-	fmt.Println(">>> CopyModule >>> Filename is", filename)
+	me.stdout.Println(">>> CopyModule >>> Filename is", filename)
 
 	fp, err := os.Open(commandargs[0])
 	if err != nil {
@@ -51,7 +51,7 @@ func (me *CopyModule) Run() error {
 	}
 	byte_buffer := make([]byte, 4096)
 	fileinfo, err := fp.Stat()
-	fmt.Println(">>> CopyModule >>> Filesize is", fileinfo.Size())
+	me.stdout.Println(">>> CopyModule >>> Filesize is", fileinfo.Size())
 
 	go func() {
 		w, _ := session.StdinPipe()
@@ -65,7 +65,7 @@ func (me *CopyModule) Run() error {
 
 		count, _ := fp.Read(byte_buffer)
 		for count > 0 {
-			fmt.Println(">>> CopyModule >>> sending", count, "bytes")
+			me.stdout.Println(">>> CopyModule >>> sending", count, "bytes")
 			fmt.Fprintf(w, "%s", byte_buffer[:count])
 			count, _ = fp.Read(byte_buffer)
 		}

@@ -25,6 +25,7 @@ type Arguments struct {
 	Module      string
 	MArguments  string
 	Test        bool
+	Quiet       bool
 }
 
 func (me *Arguments) Parse() {
@@ -49,6 +50,7 @@ func (me *Arguments) Parse() {
 	flag.StringVar(&me.MArguments, "args", "", "Module arguments")
 
 	flag.BoolVar(&me.Test, "test", false, "Runs whoami on remote host")
+	flag.BoolVar(&me.Quiet, "quiet", false, "No camerata output")
 
 	flag.Parse()
 }

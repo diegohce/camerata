@@ -53,20 +53,23 @@ func askpasswords(args *Arguments) error {
 
 func main() {
 
-	fmt.Println(">>> Hi!")
-	fmt.Printf(">>> Running Camerata v%s (%s)\n", VERSION, VERSION_NAME)
-	fmt.Println(">>>")
-
 	args := &Arguments{}
 	args.Parse()
+
+	stdout := NewStdoutManager(args)
+	stderr := NewStderrManager(args)
+
+	stdout.Println(">>> Hi!")
+	stdout.Printf(">>> Running Camerata v%s (%s)\n", VERSION, VERSION_NAME)
+	stdout.Println(">>>")
 
 	err := args.Validate()
 	if err != nil {
 		switch err := err.(type) {
 		case CamerataArgumentsError:
-			fmt.Println(">>> ArgumentsError", err)
+			stderr.Println(">>> ArgumentsError", err)
 		case CamerataError:
-			fmt.Println(">>> CamerataError", err)
+			stderr.Println(">>> CamerataError", err)
 		}
 		os.Exit(1)
 	}
@@ -77,13 +80,6 @@ func main() {
 			panic(err.Error())
 		}
 
-		//fmt.Printf("%+v\n", inventory.Modules)
-
-		//		mod, err := NewModule(args)
-		//		if err != nil {
-		//			panic(err.Error())
-		//		}
-
 		if strings.Index(inventory.Bastion.Host, ":") < 0 {
 			inventory.Bastion.Host = inventory.Bastion.Host + ":22"
 		}
@@ -91,10 +87,10 @@ func main() {
 		passwords_saved := false
 
 		for name, server := range inventory.Servers {
-			fmt.Println(">>> Playing", name, "from inventory")
+			stdout.Println(">>> Playing", name, "from inventory")
 
 			if server.User == "" && args.User == "" {
-				fmt.Println(">>>", CamerataArgumentsError{"No user defined on inventory file nor --user argument for " + name})
+				stderr.Println(">>>", CamerataArgumentsError{"No user defined on inventory file nor --user argument for " + name})
 				continue
 			}
 
@@ -138,9 +134,9 @@ func main() {
 				host = host + ":22"
 			}
 
-			sshconn, err := NewSshConnection(host, inv_args)
+			sshconn, err := NewSshConnection(host, inv_args, stdout, stderr)
 			if err != nil {
-				fmt.Printf("%+v\n", inv_args)
+				stderr.Printf("%+v\n", inv_args)
 				panic(err.Error())
 			}
 			defer sshconn.Close()
@@ -149,18 +145,18 @@ func main() {
 				inv_args.Module = module.Name
 				inv_args.MArguments = module.Args
 
-				mod, err := NewModule(inv_args)
+				mod, err := NewModule(inv_args, stdout, stderr)
 				if err != nil {
 					panic(err.Error())
 				}
 
 				if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
-					fmt.Println(">>>", err)
+					stderr.Println(">>>", err)
 					os.Exit(1)
 				}
 
 				if err := mod.(CamerataModule).Run(); err != nil {
-					fmt.Println(">>>", err)
+					stderr.Println(">>>", err)
 					os.Exit(1)
 				}
 			}
@@ -173,7 +169,7 @@ func main() {
 
 	askpasswords(args)
 
-	mod, err := NewModule(args)
+	mod, err := NewModule(args, stdout, stderr)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -184,20 +180,20 @@ func main() {
 			host = host + ":22"
 		}
 
-		sshconn, err := NewSshConnection(host, args)
+		sshconn, err := NewSshConnection(host, args, stdout, stderr)
 		if err != nil {
-			fmt.Printf("%+v\n", args)
+			stderr.Printf("%+v\n", args)
 			panic(err.Error())
 		}
 		defer sshconn.Close()
 
 		if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
-			fmt.Println(">>>", err)
+			stderr.Println(">>>", err)
 			os.Exit(1)
 		}
 
 		if err := mod.(CamerataModule).Run(); err != nil {
-			fmt.Println(">>>", err)
+			stderr.Println(">>>", err)
 			os.Exit(1)
 		}
 

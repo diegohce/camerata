@@ -20,14 +20,16 @@ func (me *TestModule) Run() error {
 		if err != nil {
 			panic(err.Error())
 		} else {
-			fmt.Println(">>> WhoAmI @", me.host, result)
+			me.stdout.Print(">>> WhoAmI @ ")
+			fmt.Println(me.host, result)
 		}
 	} else {
 		sudo_result, err := me.sshconn.SudoWhoAmI(me.args)
 		if err != nil {
 			panic(err.Error())
 		} else {
-			fmt.Println(">>> SudoWhoAmI @", me.host, sudo_result)
+			me.stdout.Print(">>> SudoWhoAmI @ ")
+			fmt.Println(me.host, sudo_result)
 		}
 	}
 

@@ -8,6 +8,8 @@ type TCamerataModule struct {
 	host    string
 	args    *Arguments
 	sshconn *SshConnection
+	stdout  *StdoutManager
+	stderr  *StderrManager
 }
 
 type CamerataModule interface {
@@ -21,23 +23,35 @@ var ModulesList = []string{
 	"copy   : Sends --args source_file|dest_directory to target hosts.",
 }
 
-func NewModule(args *Arguments) (interface{}, error) {
+func NewModule(args *Arguments, stdout *StdoutManager, stderr *StderrManager) (interface{}, error) {
 
 	switch args.Module {
 	case "test":
 		{
-			m := &TestModule{args: args}
+			m := &TestModule{
+				args:   args,
+				stdout: stdout,
+				stderr: stderr,
+			}
 			return m, nil
 		}
 	case "command":
 		{
-			m := &CommandModule{args: args}
+			m := &CommandModule{
+				args:   args,
+				stdout: stdout,
+				stderr: stderr,
+			}
 			return m, nil
 		}
 
 	case "copy":
 		{
-			m := &CopyModule{args: args}
+			m := &CopyModule{
+				args:   args,
+				stdout: stdout,
+				stderr: stderr,
+			}
 			return m, nil
 		}
 
