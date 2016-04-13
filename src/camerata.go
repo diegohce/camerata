@@ -169,9 +169,13 @@ func main() {
 
 	askpasswords(args)
 
+	//	var mod2 CamerataModule2
 	mod, err := NewModule(args, stdout, stderr)
 	if err != nil {
 		panic(err.Error())
+		//		mod2 = AvailableModules2[args.Module]
+		//		mod2.Run()
+		//		os.Exit(1)
 	}
 
 	for _, host := range strings.Split(args.Hosts, ",") {

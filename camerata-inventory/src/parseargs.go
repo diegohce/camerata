@@ -18,7 +18,7 @@ func (me *Arguments) Parse() {
 	flag.StringVar(&me.User, "user", "", "Login user")
 	flag.StringVar(&me.Pass, "pass", "", "Use this password")
 
-	flag.BoolVar(&me.Insecure, "insecure", false, "No credentials check")
+	flag.BoolVar(&me.Insecure, "insecure", true, "No credentials check")
 
 	flag.StringVar(&me.Host, "host", "", "vSphere host or IP")
 
@@ -26,6 +26,8 @@ func (me *Arguments) Parse() {
 }
 
 func (me *Arguments) Validate() error {
+
+	me.AskPass = true
 
 	if me.User == "" {
 		return errors.New("--user cannot be empty")
