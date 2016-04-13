@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
@@ -20,12 +21,26 @@ func exit(err error) {
 	os.Exit(1)
 }
 
+func uses_bastion(args *Arguments, ip string) bool {
+
+	if args.Bastion != "" {
+		if args.BastionNets != "" {
+			for _, prefix := range strings.Split(args.BastionNets, ",") {
+				if strings.HasPrefix(ip, strings.TrimSpace(prefix)) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func askpasswords(args *Arguments) error {
 
 	if args.AskPass {
-		fmt.Print("Password: ")
+		fmt.Fprint(os.Stderr, "Password: ")
 		password_b, err := terminal.ReadPassword(0)
-		fmt.Println("")
+		fmt.Fprintln(os.Stderr, "")
 		if err != nil {
 			return err
 		}
@@ -99,6 +114,14 @@ func main() {
 		exit(err)
 	}
 
+	if args.Bastion != "" {
+		fmt.Println("[bastion]")
+		fmt.Printf("host=\"%s\"\n", args.Bastion)
+		fmt.Println("user=\"MUST_SET_USER\"")
+		fmt.Println("password=\"\"")
+		fmt.Println("")
+	}
+
 	fmt.Println("[servers]")
 
 	// Print VMs per datastore
@@ -116,9 +139,18 @@ func main() {
 		}
 		//		fmt.Println("Virtual machines found:", len(vms))
 		for _, vm := range vms {
-			fmt.Printf("\t[servers.%s]", vm.Name)
-			//			fmt.Printf("\t\t%s %s %s\n", vm.Name, vm.Summary.Guest.IpAddress, vm.Summary.Guest.HostName)
-			fmt.Printf("\tHost=\"%s\"\n", vm.Summary.Guest.IpAddress)
+			if vm.Summary.Guest.IpAddress == "" {
+				fmt.Printf("#\t[servers.%s]\n", strings.Replace(vm.Name, " ", "_", -1))
+				//			fmt.Printf("\t\t%s %s %s\n", vm.Name, vm.Summary.Guest.IpAddress, vm.Summary.Guest.HostName)
+				fmt.Printf("#\thost=\"%s\"\n\n", vm.Summary.Guest.IpAddress)
+			} else {
+				fmt.Printf("\t[servers.%s]\n", strings.Replace(vm.Name, " ", "_", -1))
+				fmt.Printf("\thost=\"%s\"\n", vm.Summary.Guest.IpAddress)
+				if args.Bastion != "" && uses_bastion(args, vm.Summary.Guest.IpAddress) {
+					fmt.Println("\tuse_bastion=true")
+				}
+				fmt.Println("")
+			}
 		}
 	}
 

@@ -16,9 +16,9 @@ const (
 func askpasswords(args *Arguments) error {
 
 	if args.AskPass {
-		fmt.Print(">>> User Password: ")
+		fmt.Fprint(os.Stderr, ">>> User Password: ")
 		password_b, err := terminal.ReadPassword(0)
-		fmt.Println("")
+		fmt.Fprintln(os.Stderr, "")
 		if err != nil {
 			return CamerataError{"Error reading password from terminal"}
 		}
@@ -27,10 +27,10 @@ func askpasswords(args *Arguments) error {
 		args.Pass = password
 	}
 
-	if args.AskBastionPass {
-		fmt.Print(">>> Bastion Password [Enter for user pass]: ")
+	if args.Bastion != "" && args.AskBastionPass {
+		fmt.Fprint(os.Stderr, ">>> Bastion Password [Enter for user pass]: ")
 		bastion_password_b, err := terminal.ReadPassword(0)
-		fmt.Println("")
+		fmt.Fprintln(os.Stderr, "")
 		if err != nil {
 			return CamerataError{"Error reading bastion password from terminal"}
 		}
@@ -65,19 +65,15 @@ func main() {
 
 	err := args.Validate()
 	if err != nil {
-		switch err := err.(type) {
-		case CamerataArgumentsError:
-			stderr.Println(">>> ArgumentsError", err)
-		case CamerataError:
-			stderr.Println(">>> CamerataError", err)
-		}
+		stderr.Println(">>>", err)
 		os.Exit(1)
 	}
 
 	if len(args.Inventory) > 0 {
 		inventory, err := ParseInventory(args.Inventory)
 		if err != nil {
-			panic(err.Error())
+			stderr.Println(">>>", err)
+			os.Exit(1)
 		}
 
 		if strings.Index(inventory.Bastion.Host, ":") < 0 {
@@ -136,8 +132,9 @@ func main() {
 
 			sshconn, err := NewSshConnection(host, inv_args, stdout, stderr)
 			if err != nil {
-				stderr.Printf("%+v\n", inv_args)
-				panic(err.Error())
+				//stderr.Printf("%+v\n", inv_args)
+				stderr.Println(">>>", err)
+				continue
 			}
 			defer sshconn.Close()
 
@@ -147,17 +144,17 @@ func main() {
 
 				mod, err := NewModule(inv_args, stdout, stderr)
 				if err != nil {
-					panic(err.Error())
+					stderr.Println(">>> Error", err, "with module", module, "args", inv_args)
 				}
 
 				if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
 					stderr.Println(">>>", err)
-					os.Exit(1)
+					continue
 				}
 
 				if err := mod.(CamerataModule).Run(); err != nil {
 					stderr.Println(">>>", err)
-					os.Exit(1)
+					continue
 				}
 			}
 			sshconn.Close()
@@ -186,8 +183,9 @@ func main() {
 
 		sshconn, err := NewSshConnection(host, args, stdout, stderr)
 		if err != nil {
-			stderr.Printf("%+v\n", args)
-			panic(err.Error())
+			stderr.Println(">>>", err)
+			//stderr.Printf(">>> %+v\n", args)
+			continue
 		}
 		defer sshconn.Close()
 

@@ -6,11 +6,13 @@ import (
 )
 
 type Arguments struct {
-	User     string
-	Pass     string
-	Host     string
-	Insecure bool
-	AskPass  bool
+	User        string
+	Pass        string
+	Host        string
+	Insecure    bool
+	AskPass     bool
+	Bastion     string
+	BastionNets string
 }
 
 func (me *Arguments) Parse() {
@@ -21,6 +23,8 @@ func (me *Arguments) Parse() {
 	flag.BoolVar(&me.Insecure, "insecure", true, "No credentials check")
 
 	flag.StringVar(&me.Host, "host", "", "vSphere host or IP")
+	flag.StringVar(&me.Bastion, "bastion", "", "Bastion or jumpbox server (name or ip address)")
+	flag.StringVar(&me.BastionNets, "bastion-nets", "", "Comma separated list of segments that uses --bastion (e.g.: 10.54.165.,10.54.170.)")
 
 	flag.Parse()
 }
