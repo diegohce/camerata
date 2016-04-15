@@ -1,8 +1,10 @@
 package main
 
 import (
-	"bytes"
+	//"bytes"
 	"fmt"
+	"io"
+	"os"
 )
 
 type CommandModule TCamerataModule
@@ -48,13 +50,30 @@ func (me *CommandModule) Run() error {
 		}()
 	}
 
-	var b bytes.Buffer
-	session.Stdout = &b
+	//var b bytes.Buffer
+	//session.Stdout = &b
+	go func() {
+		var br int64
+		r, _ := session.StdoutPipe()
+		br, _ = io.Copy(os.Stdout, r)
+		for br > 0 {
+			br, _ = io.Copy(os.Stdout, r)
+		}
+	}()
+	go func() {
+		var br int64
+		r, _ := session.StderrPipe()
+		br, _ = io.Copy(os.Stderr, r)
+		for br > 0 {
+			br, _ = io.Copy(os.Stderr, r)
+		}
+	}()
+
 	if err := session.Run(commandline); err != nil {
-		panic("Failed to run: " + err.Error())
+		me.stderr.Println("Failed to run: ", err)
 	}
-	me.stdout.Print(">>> CommandModule >>>", b.String())
-	fmt.Println(b.String())
+	//me.stdout.Print(">>> CommandModule >>>", b.String())
+	//fmt.Println(b.String())
 
 	return nil
 
