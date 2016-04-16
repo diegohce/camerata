@@ -2,6 +2,7 @@ package main
 
 import (
 	"backends"
+	_ "backends/amazon"
 	_ "backends/vmware"
 	"fmt"
 	"os"
