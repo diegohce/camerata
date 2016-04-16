@@ -1,5 +1,6 @@
 GOOS=linux
-GOFILES_main=camerata-inventory.go parseargs.go
+#GOFILES_main=camerata-inventory.go parseargs.go 
+GOFILES_main=camerata-inventory.go 
 
 all: build_camerata-inventory
 
