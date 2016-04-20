@@ -1,8 +1,16 @@
 package main
 
 import (
+	"camssh"
+	"cliargs"
+	"errors"
 	"fmt"
+	"modules"
+	_ "modules/commandmodule"
+	_ "modules/copymodule"
+	_ "modules/testmodule"
 	"os"
+	"output"
 	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -13,14 +21,14 @@ const (
 	VERSION_NAME = "Jake"
 )
 
-func askpasswords(args *Arguments) error {
+func askpasswords(args *cliargs.Arguments) error {
 
 	if args.AskPass {
 		fmt.Fprint(os.Stderr, ">>> User Password: ")
 		password_b, err := terminal.ReadPassword(0)
 		fmt.Fprintln(os.Stderr, "")
 		if err != nil {
-			return CamerataError{"Error reading password from terminal"}
+			return errors.New("Error reading password from terminal")
 		}
 
 		password := string(password_b)
@@ -32,7 +40,7 @@ func askpasswords(args *Arguments) error {
 		bastion_password_b, err := terminal.ReadPassword(0)
 		fmt.Fprintln(os.Stderr, "")
 		if err != nil {
-			return CamerataError{"Error reading bastion password from terminal"}
+			return errors.New("Error reading bastion password from terminal")
 		}
 
 		bastion_password := string(bastion_password_b)
@@ -53,11 +61,11 @@ func askpasswords(args *Arguments) error {
 
 func main() {
 
-	args := &Arguments{}
+	args := &cliargs.Arguments{}
 	args.Parse()
 
-	stdout := NewStdoutManager(args)
-	stderr := NewStderrManager(args)
+	stdout := output.NewStdoutManager(args)
+	stderr := output.NewStderrManager(args)
 
 	stdout.Println(">>> Hi!")
 	stdout.Printf(">>> Running Camerata v%s (%s)\n", VERSION, VERSION_NAME)
@@ -86,7 +94,7 @@ func main() {
 			stdout.Println(">>> Playing", name, "from inventory")
 
 			if server.User == "" && args.User == "" {
-				stderr.Println(">>>", CamerataArgumentsError{"No user defined on inventory file nor --user argument for " + name})
+				stderr.Println(">>>", errors.New("No user defined on inventory file nor --user argument for "+name))
 				continue
 			}
 
@@ -113,7 +121,7 @@ func main() {
 				server.Password = args.Pass
 			}
 
-			inv_args := &Arguments{
+			inv_args := &cliargs.Arguments{
 				User:       server.User,
 				Pass:       server.Password,
 				Sudo:       server.Sudo,
@@ -130,7 +138,7 @@ func main() {
 				host = host + ":22"
 			}
 
-			sshconn, err := NewSshConnection(host, inv_args, stdout, stderr)
+			sshconn, err := camssh.NewSshConnection(host, inv_args, stdout, stderr)
 			if err != nil {
 				//stderr.Printf("%+v\n", inv_args)
 				stderr.Println(">>>", err)
@@ -142,17 +150,17 @@ func main() {
 				inv_args.Module = module.Name
 				inv_args.MArguments = module.Args
 
-				mod, err := NewModule(inv_args, stdout, stderr)
+				mod, err := modules.NewModule(inv_args, stdout, stderr)
 				if err != nil {
 					stderr.Println(">>> Error", err, "with module", module, "args", inv_args)
 				}
 
-				if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
+				if err := mod.Prepare(host, sshconn); err != nil {
 					stderr.Println(">>>", err)
 					continue
 				}
 
-				if err := mod.(CamerataModule).Run(); err != nil {
+				if err := mod.Run(); err != nil {
 					stderr.Println(">>>", err)
 					continue
 				}
@@ -166,13 +174,9 @@ func main() {
 
 	askpasswords(args)
 
-	//	var mod2 CamerataModule2
-	mod, err := NewModule(args, stdout, stderr)
+	mod, err := modules.NewModule(args, stdout, stderr)
 	if err != nil {
 		panic(err.Error())
-		//		mod2 = AvailableModules2[args.Module]
-		//		mod2.Run()
-		//		os.Exit(1)
 	}
 
 	for _, host := range strings.Split(args.Hosts, ",") {
@@ -181,7 +185,7 @@ func main() {
 			host = host + ":22"
 		}
 
-		sshconn, err := NewSshConnection(host, args, stdout, stderr)
+		sshconn, err := camssh.NewSshConnection(host, args, stdout, stderr)
 		if err != nil {
 			stderr.Println(">>>", err)
 			//stderr.Printf(">>> %+v\n", args)
@@ -189,12 +193,12 @@ func main() {
 		}
 		defer sshconn.Close()
 
-		if err := mod.(CamerataModule).Prepare(host, sshconn); err != nil {
+		if err := mod.Prepare(host, sshconn); err != nil {
 			stderr.Println(">>>", err)
 			os.Exit(1)
 		}
 
-		if err := mod.(CamerataModule).Run(); err != nil {
+		if err := mod.Run(); err != nil {
 			stderr.Println(">>>", err)
 			os.Exit(1)
 		}

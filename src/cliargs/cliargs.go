@@ -1,8 +1,9 @@
-package main
+package cliargs
 
 import (
+	"errors"
 	"flag"
-	"fmt"
+	//"fmt"
 	"os"
 	"strings"
 )
@@ -58,27 +59,27 @@ func (me *Arguments) Parse() {
 func (me *Arguments) Validate() error {
 
 	if me.ModulesList {
-		fmt.Println(strings.Join(ModulesList, "\n"))
+		//fmt.Println(strings.Join(ModulesList, "\n"))
 		os.Exit(0)
 	}
 
 	if me.User == "" && me.Inventory == "" {
-		return CamerataArgumentsError{"User cannot be empty"}
+		return errors.New("User cannot be empty")
 	}
 	if len(me.Pass) > 0 {
 		me.AskPass = false
 	}
 
 	if len(me.Pass) == 0 && !me.AskPass {
-		return CamerataArgumentsError{"Must define --pass or --ask-pass"}
+		return errors.New("Must define --pass or --ask-pass")
 	}
 
 	if len(me.Inventory) > 0 && len(me.Hosts) > 0 {
-		return CamerataArgumentsError{"--inventory and --hosts cannot be combined"}
+		return errors.New("--inventory and --hosts cannot be combined")
 	}
 
 	if len(me.Inventory) == 0 && len(me.Hosts) == 0 {
-		return CamerataArgumentsError{"Must define --inventory or --hosts"}
+		return errors.New("Must define --inventory or --hosts")
 	}
 
 	if len(me.Bastion) > 0 {
