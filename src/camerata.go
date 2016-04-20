@@ -71,6 +71,11 @@ func main() {
 	stdout.Printf(">>> Running Camerata v%s (%s)\n", VERSION, VERSION_NAME)
 	stdout.Println(">>>")
 
+	if args.ModulesList {
+		fmt.Println(strings.Join(modules.ModulesList, "\n"))
+		os.Exit(0)
+	}
+
 	err := args.Validate()
 	if err != nil {
 		stderr.Println(">>>", err)

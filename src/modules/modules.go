@@ -22,16 +22,13 @@ type CamerataModule interface {
 	Run() error
 }
 
-var ModulesList = []string{
-	"test   : Runs \"whoami\" command on target hosts.",
-	"command: Executes --args command line on target hosts.",
-	"copy   : Sends --args source_file|dest_directory to target hosts.",
-}
+var ModulesList = []string{}
 
 var AvailableModules = map[string]CamerataModule{}
 
-func Register(name string, cm CamerataModule) {
+func Register(name string, cm CamerataModule, description string) {
 	AvailableModules[name] = cm
+	ModulesList = append(ModulesList, fmt.Sprintf("%s\n\t%s", name, description))
 }
 
 func NewModule(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) (CamerataModule, error) {

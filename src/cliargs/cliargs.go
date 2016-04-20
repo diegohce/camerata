@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	//"fmt"
-	"os"
 	"strings"
 )
 
@@ -57,11 +56,6 @@ func (me *Arguments) Parse() {
 }
 
 func (me *Arguments) Validate() error {
-
-	if me.ModulesList {
-		//fmt.Println(strings.Join(ModulesList, "\n"))
-		os.Exit(0)
-	}
 
 	if me.User == "" && me.Inventory == "" {
 		return errors.New("User cannot be empty")

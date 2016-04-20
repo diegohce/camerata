@@ -15,7 +15,8 @@ import (
 type CommandModule modules.TCamerataModule
 
 func init() {
-	modules.Register("command", &CommandModule{})
+	modules.Register("command", &CommandModule{},
+		"Executes --args command line on target hosts.")
 }
 
 func (me *CommandModule) Setup(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) {

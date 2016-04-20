@@ -11,7 +11,8 @@ import (
 type TestModule modules.TCamerataModule
 
 func init() {
-	modules.Register("test", &TestModule{})
+	modules.Register("test", &TestModule{},
+		"Runs \"whoami\" command on target hosts.")
 }
 
 func (me *TestModule) Setup(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) {

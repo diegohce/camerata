@@ -16,7 +16,8 @@ import (
 type CopyModule modules.TCamerataModule
 
 func init() {
-	modules.Register("copy", &CopyModule{})
+	modules.Register("copy", &CopyModule{},
+		"Sends --args source_file|dest_directory to target hosts.")
 }
 
 func (me *CopyModule) Setup(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) {
