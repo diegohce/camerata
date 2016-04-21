@@ -1,6 +1,7 @@
-package main
+package output
 
 import (
+	"cliargs"
 	"fmt"
 	"os"
 )
@@ -13,7 +14,7 @@ type StderrManager struct {
 	write bool
 }
 
-func NewStdoutManager(args *Arguments) *StdoutManager {
+func NewStdoutManager(args *cliargs.Arguments) *StdoutManager {
 	return &StdoutManager{write: !args.Quiet}
 }
 
@@ -38,7 +39,7 @@ func (me *StdoutManager) Printf(format string, v ...interface{}) (int, error) {
 	return 0, nil
 }
 
-func NewStderrManager(args *Arguments) *StderrManager {
+func NewStderrManager(args *cliargs.Arguments) *StderrManager {
 	return &StderrManager{write: !args.Quiet}
 }
 
