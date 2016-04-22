@@ -85,6 +85,8 @@ func (me *CommandModule) Run() error {
 		}
 	}()
 
+	session.Stdin = os.Stdin
+
 	if err := session.Run(commandline); err != nil {
 		me.Stderr.Println("Failed to run: ", err)
 	}
