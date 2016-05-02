@@ -54,15 +54,22 @@ func (me *CommandModule) Run() error {
 	}
 	defer session.Close()
 
+	//???????	session.Stdin = os.Stdin
+
 	if me.Args.Sudo {
 		commandline = fmt.Sprintf("sudo -S \"%s\"", commandargs)
 
 		go func() {
-			w, _ := session.StdinPipe()
+			w, err := session.StdinPipe()
+			if err != nil {
+				panic("Error on stdinpipe: " + err.Error())
+			}
+
 			defer w.Close()
 			if me.Args.Sudo && !me.Args.SudoNoPass {
 				fmt.Fprintln(w, me.Args.Pass)
 			}
+			//???????	session.Stdin = os.Stdin
 		}()
 	}
 
@@ -85,7 +92,7 @@ func (me *CommandModule) Run() error {
 		}
 	}()
 
-	session.Stdin = os.Stdin
+	//??????????session.Stdin = os.Stdin
 
 	if err := session.Run(commandline); err != nil {
 		me.Stderr.Println("Failed to run: ", err)

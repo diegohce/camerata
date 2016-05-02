@@ -103,7 +103,7 @@ func main() {
 				continue
 			}
 
-			if !passwords_saved {
+			if !passwords_saved && server.PemFile == "" {
 
 				if inventory.Bastion.Password == "" {
 					args.AskBastionPass = true
@@ -126,11 +126,24 @@ func main() {
 				server.Password = args.Pass
 			}
 
+			var pemfile string
+
+			if args.PemFile != "" {
+				pemfile = args.PemFile
+			} else {
+				pemfile = server.PemFile
+			}
+
+			//			if args.Sudo {
+			//				server.Sudo = true
+			//			}
+
 			inv_args := &cliargs.Arguments{
 				User:       server.User,
 				Pass:       server.Password,
 				Sudo:       server.Sudo,
 				SudoNoPass: server.SudoNoPass,
+				PemFile:    pemfile,
 			}
 			if server.UseBastion {
 				inv_args.Bastion = inventory.Bastion.Host
@@ -142,6 +155,8 @@ func main() {
 			if strings.Index(host, ":") < 0 {
 				host = host + ":22"
 			}
+
+			fmt.Printf("%+v\n\n", inv_args)
 
 			sshconn, err := camssh.NewSshConnection(host, inv_args, stdout, stderr)
 			if err != nil {

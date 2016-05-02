@@ -26,6 +26,7 @@ type Arguments struct {
 	MArguments  string
 	Test        bool
 	Quiet       bool
+	PemFile     string
 }
 
 func (me *Arguments) Parse() {
@@ -51,6 +52,8 @@ func (me *Arguments) Parse() {
 
 	flag.BoolVar(&me.Test, "test", false, "Runs whoami on remote host")
 	flag.BoolVar(&me.Quiet, "quiet", false, "No camerata output")
+
+	flag.StringVar(&me.PemFile, "pem", "", "Path to pemfile for auth")
 
 	flag.Parse()
 }
@@ -86,6 +89,10 @@ func (me *Arguments) Validate() error {
 		if len(me.BastionPass) == 0 {
 			me.BastionPass = me.Pass
 		}
+	}
+
+	if me.PemFile != "" {
+		me.AskPass = false
 	}
 
 	return nil

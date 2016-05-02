@@ -7,7 +7,7 @@ install: camerata camerata_inventory camerata_writer
 	mv src/camerata \
 		src/camerata.exe \
 		camerata-inventory/src/camerata-inventory \
-		camerata-inventory/src/camerata-inventory.exe
+		camerata-inventory/src/camerata-inventory.exe \
 		camerata-writer/src/camerata-writer \
 		camerata-writer/src/camerata-writer.exe bin 2>/dev/null; true
 

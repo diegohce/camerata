@@ -63,8 +63,9 @@ type Server struct {
 	User       string
 	Password   string
 	Sudo       bool
-	SudoNoPass bool `toml:"sudo_nopass"`
-	UseBastion bool `toml:"use_bastion"`
+	SudoNoPass bool   `toml:"sudo_nopass"`
+	UseBastion bool   `toml:"use_bastion"`
+	PemFile    string `toml:"pemfile"`
 }
 
 type ServerModule struct {

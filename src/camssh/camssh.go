@@ -5,6 +5,7 @@ import (
 	"cliargs"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"output"
 
@@ -20,14 +21,50 @@ type SshConnection struct {
 	Stderr         *output.StderrManager
 }
 
+func makeSigner(pemfile string) (ssh.Signer, error) {
+
+	pemBytes, err := ioutil.ReadFile(pemfile)
+	if err != nil {
+		//log.Fatal(err)
+	}
+	signer, err := ssh.ParsePrivateKey(pemBytes)
+	if err != nil {
+		return nil, err
+	}
+	return signer, nil
+}
+
 func NewSshConnection(host string, args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) (*SshConnection, error) {
+
+	var authm ssh.AuthMethod
+
+	if args.PemFile != "" {
+		signer, err := makeSigner(args.PemFile)
+		if err != nil {
+			return nil, err
+		}
+		authm = ssh.PublicKeys(signer)
+
+	} else {
+		authm = ssh.Password(args.Pass)
+	}
 
 	config := &ssh.ClientConfig{
 		User: args.User,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(args.Pass),
+			authm,
+			//ssh.Password(args.Pass),
 		},
 	}
+
+	/*
+		config := &ssh.ClientConfig{
+			User: args.User,
+			Auth: []ssh.AuthMethod{
+				ssh.Password(args.Pass),
+			},
+		}
+	*/
 
 	sshconn := &SshConnection{
 		Config: config,
@@ -46,11 +83,24 @@ func NewSshConnection(host string, args *cliargs.Arguments, stdout *output.Stdou
 
 	} else {
 		var err error
+		var bastion_authm ssh.AuthMethod
+
+		if args.PemFile != "" {
+			signer, err := makeSigner(args.PemFile)
+			if err != nil {
+				return nil, err
+			}
+			bastion_authm = ssh.PublicKeys(signer)
+
+		} else {
+			bastion_authm = ssh.Password(args.BastionPass)
+		}
 
 		sshconn.Bastion_config = &ssh.ClientConfig{
 			User: args.BastionUser,
 			Auth: []ssh.AuthMethod{
-				ssh.Password(args.BastionPass),
+				bastion_authm,
+				//ssh.Password(args.BastionPass),
 			},
 		}
 
