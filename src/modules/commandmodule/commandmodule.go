@@ -54,27 +54,28 @@ func (me *CommandModule) Run() error {
 	}
 	defer session.Close()
 
-	//???????	session.Stdin = os.Stdin
-
 	if me.Args.Sudo {
-		commandline = fmt.Sprintf("sudo -S \"%s\"", commandargs)
+		commandline = fmt.Sprintf("sudo -S bash <<CMD\n%s\nCMD\n", commandargs)
 
-		go func() {
-			w, err := session.StdinPipe()
-			if err != nil {
-				panic("Error on stdinpipe: " + err.Error())
-			}
+		//		go func() {
+		//			w, err := session.StdinPipe()
+		//			if err != nil {
+		//				panic("Error on stdinpipe: " + err.Error())
+		//			}
+		//			defer w.Close()
 
-			defer w.Close()
-			if me.Args.Sudo && !me.Args.SudoNoPass {
-				fmt.Fprintln(w, me.Args.Pass)
-			}
-			//???????	session.Stdin = os.Stdin
-		}()
+		if me.Args.Sudo && !me.Args.SudoNoPass {
+			//fmt.Fprintln(w, me.Args.Pass)
+			//commandline = fmt.Sprintf("echo %s | sudo -S \"%s\"", me.Args.Pass, commandargs)
+			commandline = fmt.Sprintf("sudo -S bash <<CMD\n%s\n%s\nCMD\n", me.Args.Pass, commandargs)
+		}
+		session.Stdin = os.Stdin
+		//io.Copy(w, os.Stdin)
+		//		}()
+	} else {
+		session.Stdin = os.Stdin
 	}
 
-	//var b bytes.Buffer
-	//session.Stdout = &b
 	go func() {
 		var br int64
 		r, _ := session.StdoutPipe()
@@ -92,13 +93,11 @@ func (me *CommandModule) Run() error {
 		}
 	}()
 
-	//??????????session.Stdin = os.Stdin
-
+	//session.Stdin = os.Stdin
+	fmt.Println("RUNNING", commandline)
 	if err := session.Run(commandline); err != nil {
 		me.Stderr.Println("Failed to run: ", err)
 	}
-	//me.Stdout.Print(">>> CommandModule >>>", b.String())
-	//fmt.Println(b.String())
 
 	return nil
 

@@ -134,9 +134,9 @@ func main() {
 				pemfile = server.PemFile
 			}
 
-			//			if args.Sudo {
-			//				server.Sudo = true
-			//			}
+			if args.Sudo {
+				server.Sudo = true
+			}
 
 			inv_args := &cliargs.Arguments{
 				User:       server.User,
@@ -156,7 +156,7 @@ func main() {
 				host = host + ":22"
 			}
 
-			fmt.Printf("%+v\n\n", inv_args)
+			//fmt.Printf("%+v\n\n", inv_args)
 
 			sshconn, err := camssh.NewSshConnection(host, inv_args, stdout, stderr)
 			if err != nil {
