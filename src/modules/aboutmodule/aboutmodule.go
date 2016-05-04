@@ -15,7 +15,7 @@ type AboutModule struct {
 
 func init() {
 	modules.Register("about", &AboutModule{},
-		"Demo module for testing porpouses.")
+		"Demo module.")
 }
 
 func (me *AboutModule) Setup(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) {

@@ -10,20 +10,26 @@ import (
 	"os"
 	"output"
 	"path/filepath"
-	"strings"
+	//"strings"
 )
 
-type CopyModule modules.TCamerataModule
+type CopyModule struct {
+	modules.TCamerataModule
+	CopyArgs map[string]string
+}
 
 func init() {
 	modules.Register("copy", &CopyModule{},
-		"Sends --args source_file|dest_directory to target hosts.")
+		"Sends --args source=file to target=directory to target hosts.")
 }
 
 func (me *CopyModule) Setup(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) {
 	me.Args = args
 	me.Stdout = stdout
 	me.Stderr = stderr
+
+	me.CopyArgs = modules.ModuleArgsMap(args.MArguments)
+
 }
 
 func (me *CopyModule) Prepare(host string, sshconn *camssh.SshConnection) error {
@@ -34,17 +40,14 @@ func (me *CopyModule) Prepare(host string, sshconn *camssh.SshConnection) error 
 		return errors.New("CopyModule: Arguments cannot be empty")
 	}
 
-	commandargs := strings.Split(me.Args.MArguments, "|")
-	if len(commandargs) != 2 {
-		return errors.New("CopyModule: Arguments must be src_file|dest_dir")
+	if len(me.CopyArgs) != 2 {
+		return errors.New("CopyModule: Arguments must be \"source=file target=directory\"")
 	}
 
 	return nil
 }
 
 func (me *CopyModule) Run() error {
-
-	commandargs := strings.Split(me.Args.MArguments, "|")
 
 	me.Stdout.Print(">>> CopyModule >>> Copying ", me.Args.MArguments, "@", me.Host)
 	if me.Args.Sudo {
@@ -58,10 +61,10 @@ func (me *CopyModule) Run() error {
 	}
 	defer session.Close()
 
-	filename := filepath.Base(commandargs[0])
+	filename := filepath.Base(me.CopyArgs["source"])
 	me.Stdout.Println(">>> CopyModule >>> Filename is", filename)
 
-	fp, err := os.Open(commandargs[0])
+	fp, err := os.Open(me.CopyArgs["source"])
 	if err != nil {
 		panic("Error opening file " + err.Error())
 	}
@@ -89,7 +92,7 @@ func (me *CopyModule) Run() error {
 		fmt.Fprint(w, "\x00")
 	}()
 
-	scp_command := fmt.Sprintf("scp -qrt %s/%s", commandargs[1], filename)
+	scp_command := fmt.Sprintf("scp -qrt %s/%s", me.CopyArgs["target"], filename)
 	if me.Args.Sudo {
 		scp_command = fmt.Sprintf("sudo -S %s", scp_command)
 	}
