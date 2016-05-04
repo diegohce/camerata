@@ -107,19 +107,19 @@ func NewSshConnection(host string, args *cliargs.Arguments, stdout *output.Stdou
 		stdout.Println(">>> Dialing bastion", args.Bastion, "with user", args.BastionUser)
 		sshconn.Bastion, err = ssh.Dial("tcp", args.Bastion, sshconn.Bastion_config)
 		if err != nil {
-			return nil, errors.New("Failed to dial: " + err.Error())
+			return nil, errors.New(fmt.Sprintf("Failed to dial %s: %s", host, err.Error()))
 		}
 
 		stdout.Println(">>> Creating connection between", args.Bastion, "and", host)
 		var client_tcp_conn net.Conn
 		client_tcp_conn, err = sshconn.Bastion.Dial("tcp", host)
 		if err != nil {
-			return nil, errors.New("Failed to dial: " + err.Error())
+			return nil, errors.New(fmt.Sprintf("Failed to dial %s: %s", host, err.Error()))
 		}
 
 		client_conn, new_ch, req_ch, err := ssh.NewClientConn(client_tcp_conn, host, config)
 		if err != nil {
-			return nil, errors.New("Failed jumping from bastion to target: " + err.Error())
+			return nil, errors.New(fmt.Sprintf("Failed jumping from bastion to target %s: %s", host, err.Error()))
 		}
 
 		sshconn.Client = ssh.NewClient(client_conn, new_ch, req_ch)
