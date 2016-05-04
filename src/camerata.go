@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"modules"
+	_ "modules/aboutmodule"
 	_ "modules/commandmodule"
 	_ "modules/copymodule"
 	_ "modules/testmodule"

@@ -6,6 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"output"
+	"strings"
+
+	"github.com/google/shlex"
 )
 
 type TCamerataModule struct {
@@ -41,4 +44,19 @@ func NewModule(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *ou
 	m.Setup(args, stdout, stderr)
 
 	return m, nil
+}
+
+func ModuleArgsMap(kvargs string) map[string]string {
+
+	res := map[string]string{}
+
+	subs, _ := shlex.Split(kvargs)
+
+	for _, arg := range subs {
+
+		parts := strings.SplitN(arg, "=", 2)
+		res[parts[0]] = parts[1]
+	}
+
+	return res
 }
