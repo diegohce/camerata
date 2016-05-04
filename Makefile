@@ -1,8 +1,11 @@
 GOOS=linux
 
-all: camerata camerata_inventory camerata_writer
+all: camerata camerata_inventory 
 
-install: camerata camerata_inventory camerata_writer
+#camerata_writer
+
+install: camerata camerata_inventory 
+#camerata_writer
 	mkdir -p bin
 	mv src/camerata \
 		src/camerata.exe \
