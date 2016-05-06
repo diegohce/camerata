@@ -55,12 +55,12 @@ Camerata inventory file generator.
  * amazon
 
 
-## camerata-inventory **about** commandline options: ##
+## camerata-inventory **about** command line options: ##
 
 No options, just an about message.
 
 
-## camerata-inventory **vmware** commandline options: ##
+## camerata-inventory **vmware** command line options: ##
 
 
 ```
@@ -82,7 +82,7 @@ No options, just an about message.
     	vCenter username
 ```
 
-## camerata-inventory **amazon** commandline options: ##
+## camerata-inventory **amazon** command line options: ##
 
 Backend into development stage
 
