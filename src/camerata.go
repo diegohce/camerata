@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"modules"
 	_ "modules/aboutmodule"
+	_ "modules/aptmodule"
 	_ "modules/commandmodule"
 	_ "modules/copymodule"
 	_ "modules/testmodule"
