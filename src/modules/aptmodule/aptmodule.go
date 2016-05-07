@@ -20,6 +20,7 @@ type Apt struct {
 	MyArgs       map[string]string
 	commands     []string
 	upd_duration time.Duration
+	fix_deps     bool
 }
 
 func init() {
@@ -27,8 +28,8 @@ func init() {
 	aptmodule_description := `apt operations module.
 		name=pkg_name
 		update_cache=yes (force) || update_cache=24h59m59s (if older than 24h59m59s, update)
-		deb=/path/to/package.deb (on server)(not implemented)
-		deb_dependencies=yes || no (try to install 'deb' dependencies if 'deb' fails)(not implemented)`
+		deb=/path/to/package.deb (on server)(not tested)
+		deb_dependencies=yes || no (try to install 'deb' dependencies if 'deb' fails)(not tested)`
 
 	modules.Register("apt", &Apt{}, aptmodule_description)
 }
@@ -52,7 +53,6 @@ func (me *Apt) Prepare(host string, sshconn *camssh.SshConnection) error {
 		if value == "yes" {
 			me.commands = append(me.commands, "DEBIAN_FRONTEND=noninteractive apt-get -y update")
 		}
-
 		{
 			d, err := time.ParseDuration(value)
 			fmt.Println("Duration", d)
@@ -67,6 +67,17 @@ func (me *Apt) Prepare(host string, sshconn *camssh.SshConnection) error {
 
 	if value, ok := me.MyArgs["name"]; ok {
 		me.commands = append(me.commands, fmt.Sprintf("DEBIAN_FRONTEND=noninteractive apt-get -y install %s", value))
+	}
+
+	if value, ok := me.MyArgs["deb"]; ok {
+		me.commands = append(me.commands, fmt.Sprintf("DEBIAN_FRONTEND=noninteractive dpkg -i %s", value))
+
+		if value, ok := me.MyArgs["deb_dependencies"]; ok {
+			if value == "yes" {
+				me.fix_deps = true
+			}
+		}
+
 	}
 
 	return nil
@@ -121,7 +132,26 @@ func (me *Apt) Run() error {
 		}
 
 		if err := session.Run(commandline); err != nil {
-			return errors.New("Error " + err.Error() + " Failed to run " + command + " aborting apt operation on " + me.Host)
+
+			if strings.Index(commandline, "dpkg -i") > -1 && me.fix_deps {
+				err := me.fixDependencies()
+				if err != nil {
+					return err
+				}
+
+				sub_session, err := me.Sshconn.Client.NewSession()
+				if err != nil {
+					panic("Failed to create session: " + err.Error())
+				}
+				defer sub_session.Close()
+
+				if err := sub_session.Run(commandline); err != nil {
+					return errors.New("Error " + err.Error() + " Failed to run " + command + " aborting apt operation on " + me.Host)
+				}
+
+			} else {
+				return errors.New("Error " + err.Error() + " Failed to run " + command + " aborting apt operation on " + me.Host)
+			}
 		}
 		session.Close()
 
@@ -150,5 +180,32 @@ func (me *Apt) getLastUpdate() time.Time {
 	//	fmt.Println("i", i)
 
 	return time.Unix(int64(i), 0)
+
+}
+
+func (me *Apt) fixDependencies() error {
+	session, err := me.Sshconn.Client.NewSession()
+	if err != nil {
+		panic("Failed to create session: " + err.Error())
+	}
+	defer session.Close()
+
+	command := "DEBIAN_FRONTEND=noninteractive apt-get -y install -f"
+
+	var commandline string
+
+	if me.Args.User != "root" {
+		commandline = fmt.Sprintf("echo %s | sudo -S %s", me.Args.Pass, command)
+	} else {
+		commandline = command
+	}
+
+	var b bytes.Buffer
+	session.Stdout = &b
+	if err := session.Run(commandline); err != nil {
+		return err
+	}
+
+	return nil
 
 }
