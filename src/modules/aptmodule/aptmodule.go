@@ -27,8 +27,8 @@ func init() {
 	aptmodule_description := `apt operations module.
 		name=pkg_name
 		update_cache=yes (force) || update_cache=24h59m59s (if older than 24h59m59s, update)
-		deb=/path/to/package.deb (on server)
-		deb_dependencies=yes || no (try to install 'deb' dependencies if 'deb' fails	)`
+		deb=/path/to/package.deb (on server)(not implemented)
+		deb_dependencies=yes || no (try to install 'deb' dependencies if 'deb' fails)(not implemented)`
 
 	modules.Register("apt", &Apt{}, aptmodule_description)
 }
