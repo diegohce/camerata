@@ -71,7 +71,7 @@ func (me *CommandModule) Run() error {
 		}
 	}()
 
-	if me.Args.Sudo {
+	if me.Args.Sudo && me.Args.User != "root" {
 		if !me.Args.SudoNoPass {
 			commandline = fmt.Sprintf("echo %s | sudo -S %s", me.Args.Pass, commandargs)
 			//			commandline = fmt.Sprintf("sudo -S \"%s\"", commandargs)

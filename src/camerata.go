@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"modules"
 	_ "modules/aboutmodule"
+	_ "modules/aptmodule"
 	_ "modules/commandmodule"
 	_ "modules/copymodule"
 	_ "modules/testmodule"
@@ -18,7 +19,7 @@ import (
 )
 
 const (
-	VERSION      = "0.1.0"
+	VERSION      = "1.2.1"
 	VERSION_NAME = "Jake"
 )
 
