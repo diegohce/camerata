@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	VERSION      = "0.1.1"
-	VERSION_NAME = "Jake(unstable)"
+	VERSION      = "1.2.1"
+	VERSION_NAME = "Jake"
 )
 
 func askpasswords(args *cliargs.Arguments) error {
