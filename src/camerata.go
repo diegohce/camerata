@@ -10,6 +10,7 @@ import (
 	_ "modules/aptmodule"
 	_ "modules/commandmodule"
 	_ "modules/copymodule"
+	_ "modules/gitmodule"
 	_ "modules/testmodule"
 	"os"
 	"output"
