@@ -24,18 +24,23 @@ type Git struct {
 func init() {
 
 	gitmodule_description := `git deploy module.
-		**Clone / update**
+		**Clone & set version**
 		repo=git://github.com/diegohce/camerata.git
 		dest=/usr/src/camerata
 		version=0.1.2
-		
-		**Rollback version**
+
+		**update**
 		dest=/usr/src/camerata
-		rollback_to=0.1.1
+		
+		version=0.1.2
 		
 		**Get version**
 		dest=/usr/src/camerata
-		version=?`
+		version=?
+		
+		**Set version**
+		dest=/usr/src/camerata
+		version=0.1.2`
 
 	modules.Register("git", &Git{}, gitmodule_description)
 }
@@ -59,12 +64,12 @@ func (me *Git) Prepare(host string, sshconn *camssh.SshConnection) error {
 		return errors.New("Missing 'dest' argument")
 	}
 
-	if value, ok := me.MyArgs["version"]; ok {
-		if value == "?" {
+	//	if value, ok := me.MyArgs["version"]; ok {
+	//		if value == "?" {
 
-			me.commands = append(me.commands, fmt.Sprintf("cd %s && git describe", me.MyArgs["dest"]))
-		}
-	}
+	//			me.commands = append(me.commands, fmt.Sprintf("cd %s && git describe", me.MyArgs["dest"]))
+	//		}
+	//	}
 
 	return nil
 }
@@ -73,15 +78,40 @@ func (me *Git) Run() error {
 
 	me.Stdout.Println(">>> GitModule >>> ", me.Args.MArguments)
 
-	for _, command := range me.commands {
+	if value, ok := me.MyArgs["repo"]; ok {
+		command := fmt.Sprintf("git clone %s %s", value, me.MyArgs["dest"])
 
-		fmt.Println(command)
 		output, err := me.runOutput(command)
 		if err != nil {
 			return err
 		}
-		fmt.Print(output)
+		me.Stdout.Print(output)
+	}
 
+	if value, ok := me.MyArgs["version"]; ok {
+		if value == "?" {
+
+			command := fmt.Sprintf("cd %s && git describe", me.MyArgs["dest"])
+
+			output, err := me.runOutput(command)
+			if err != nil {
+				return err
+			}
+			me.Stdout.Print(output)
+
+		} else {
+			fetch_command := fmt.Sprintf("cd %s && git fetch && git fetch --tags", me.MyArgs["dest"])
+			reset_command := fmt.Sprintf("cd %s && git reset --hard %s", me.MyArgs["dest"], value)
+
+			if err := me.runMapOutput(fetch_command); err != nil {
+				return err
+			}
+
+			if err := me.runMapOutput(reset_command); err != nil {
+				return err
+			}
+
+		}
 	}
 
 	return nil
