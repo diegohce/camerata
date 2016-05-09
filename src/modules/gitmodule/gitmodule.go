@@ -100,6 +100,7 @@ func (me *Git) Run() error {
 			me.Stdout.Print(output)
 
 		} else {
+			//what if it asks for passwd?
 			fetch_command := fmt.Sprintf("cd %s && git fetch && git fetch --tags", me.MyArgs["dest"])
 			reset_command := fmt.Sprintf("cd %s && git reset --hard %s", me.MyArgs["dest"], value)
 
