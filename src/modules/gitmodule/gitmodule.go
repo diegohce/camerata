@@ -23,24 +23,20 @@ type Git struct {
 
 func init() {
 
-	gitmodule_description := `git deploy module.
+	gitmodule_description := `git deploy module (requieres 'sshpass' for ssh repos).
 		**Clone & set version**
 		repo=git://github.com/diegohce/camerata.git
 		dest=/usr/src/camerata
 		version=0.1.2
+		use_password=
 
-		**update**
+		**update / set version** (implies fetch && fetch --tags)
 		dest=/usr/src/camerata
-		
 		version=0.1.2
 		
 		**Get version**
 		dest=/usr/src/camerata
-		version=?
-		
-		**Set version**
-		dest=/usr/src/camerata
-		version=0.1.2`
+		version=?`
 
 	modules.Register("git", &Git{}, gitmodule_description)
 }
