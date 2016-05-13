@@ -28,11 +28,12 @@ func init() {
 		repo=git://github.com/diegohce/camerata.git
 		dest=/usr/src/camerata
 		version=0.1.2
-		use_password=
+		sshpassword=XXXXXX
 
 		**update / set version** (implies fetch && fetch --tags)
 		dest=/usr/src/camerata
 		version=0.1.2
+		sshpassword=XXXXXX
 		
 		**Get version**
 		dest=/usr/src/camerata
@@ -97,6 +98,7 @@ func (me *Git) Run() error {
 
 		} else {
 			//what if it asks for passwd?
+			// Will requiere sshpass to be installed on the server.
 			fetch_command := fmt.Sprintf("cd %s && git fetch && git fetch --tags", me.MyArgs["dest"])
 			reset_command := fmt.Sprintf("cd %s && git reset --hard %s", me.MyArgs["dest"], value)
 
