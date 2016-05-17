@@ -28,12 +28,12 @@ func init() {
 		repo=git://github.com/diegohce/camerata.git
 		dest=/usr/src/camerata
 		version=0.1.2
-		sshpassword=XXXXXX
+		ssh_password=XXXXXX (requires 'sshpass' on the server)
 
 		**update / set version** (implies fetch && fetch --tags)
 		dest=/usr/src/camerata
 		version=0.1.2
-		sshpassword=XXXXXX
+		ssh_password=XXXXXX (requires 'sshpass' on the server)
 		
 		**Get version**
 		dest=/usr/src/camerata
@@ -41,6 +41,8 @@ func init() {
 
 	modules.Register("git", &Git{}, gitmodule_description)
 }
+
+//799241
 
 func (me *Git) Setup(args *cliargs.Arguments, stdout *output.StdoutManager, stderr *output.StderrManager) {
 	me.Args = args
@@ -60,13 +62,6 @@ func (me *Git) Prepare(host string, sshconn *camssh.SshConnection) error {
 	if _, ok := me.MyArgs["dest"]; !ok {
 		return errors.New("Missing 'dest' argument")
 	}
-
-	//	if value, ok := me.MyArgs["version"]; ok {
-	//		if value == "?" {
-
-	//			me.commands = append(me.commands, fmt.Sprintf("cd %s && git describe", me.MyArgs["dest"]))
-	//		}
-	//	}
 
 	return nil
 }
@@ -99,7 +94,13 @@ func (me *Git) Run() error {
 		} else {
 			//what if it asks for passwd?
 			// Will requiere sshpass to be installed on the server.
-			fetch_command := fmt.Sprintf("cd %s && git fetch && git fetch --tags", me.MyArgs["dest"])
+
+			sshpass := ""
+			if value, ok := me.MyArgs["ssh_password"]; ok {
+				sshpass = fmt.Sprintf(" sshpass -p%s ", value)
+			}
+
+			fetch_command := fmt.Sprintf("cd %s && %s git fetch && %s git fetch --tags", me.MyArgs["dest"], sshpass, sshpass)
 			reset_command := fmt.Sprintf("cd %s && git reset --hard %s", me.MyArgs["dest"], value)
 
 			if err := me.runMapOutput(fetch_command); err != nil {
