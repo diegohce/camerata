@@ -28,6 +28,8 @@ func init() {
 		*name=pip_package_name
 		*requirements=/path/to/requirements.txt
 		
+		index=http://url/to/pip/index
+		
 		virtualenv=/path/to/virtualenv_to_activate
 		
 		virtualenv_create=no || yes (default no)
@@ -58,59 +60,67 @@ func (me *Pip) Prepare(host string, sshconn *camssh.SshConnection) error {
 	me.Host = host
 	me.Sshconn = sshconn
 
-	if _, ok := me.MyArgs["dest"]; !ok {
-		return errors.New("Missing 'dest' argument")
+	_, reqs := me.MyArgs["requirements"]
+	_, pack := me.MyArgs["name"]
+
+	if !reqs && !pack {
+		return errors.New("Missing 'name' and 'requirements' argument. Must specify one.")
 	}
+
+	if value, ok := me.MyArgs["virtualenv_create"]; ok && value == "yes" {
+
+		if _, o := me.MyArgs["virtualenv"]; !o {
+			return errors.New("Specified 'virtualenv_create' but missing 'virtualenv' path.")
+		}
+	}
+
+	if value, ok := me.MyArgs["virtualenv_create"]; ok && value == "yes" {
+
+		if value, ok := me.MyArgs["virtualenv_site_packages"]; ok && value == "yes" {
+
+			me.commands = append(me.commands, fmt.Sprintf("virtualenv --site-packages %s", me.MyArgs["virtualenv"]))
+
+		} else {
+			me.commands = append(me.commands, fmt.Sprintf("virtualenv  %s", me.MyArgs["virtualenv"]))
+
+		}
+	}
+
+	pipcommand := "pip install"
+
+	if value, ok := me.MyArgs["index"]; ok {
+		pipcommand = fmt.Sprintf("%s -i %s", pipcommand, value)
+	}
+
+	if value, ok := me.MyArgs["virtualenv"]; ok {
+		pipcommand = fmt.Sprintf(". %s/bin/activate && %s", value, pipcommand)
+	}
+
+	if reqs {
+		pipcommand = fmt.Sprintf("%s -r %s", pipcommand, me.MyArgs["requirements"])
+	} else {
+		pipcommand = fmt.Sprintf("%s %s", pipcommand, me.MyArgs["name"])
+	}
+
+	me.commands = append(me.commands, pipcommand)
 
 	return nil
 }
 
 func (me *Pip) Run() error {
 
-	me.Stdout.Println(">>> GitModule >>> ", me.Args.MArguments)
+	me.Stdout.Println(">>> PipModule >>> ", me.Args.MArguments)
 
-	if value, ok := me.MyArgs["repo"]; ok {
-		command := fmt.Sprintf("git clone %s %s", value, me.MyArgs["dest"])
+	for _, command := range me.commands {
 
-		output, err := me.runOutput(command)
-		if err != nil {
+		me.Stdout.Print(">>> PipModule >>> ", command)
+
+		if err := me.runMapOutput(command); err != nil {
 			return err
 		}
-		me.Stdout.Print(output)
-	}
 
-	if value, ok := me.MyArgs["version"]; ok {
-		if value == "?" {
+		me.Stdout.Println("...Done")
 
-			command := fmt.Sprintf("cd %s && git describe", me.MyArgs["dest"])
-
-			output, err := me.runOutput(command)
-			if err != nil {
-				return err
-			}
-			me.Stdout.Print(output)
-
-		} else {
-			//what if it asks for passwd?
-			// Will requiere sshpass to be installed on the server.
-
-			sshpass := ""
-			if value, ok := me.MyArgs["ssh_password"]; ok {
-				sshpass = fmt.Sprintf(" sshpass -p%s ", value)
-			}
-
-			fetch_command := fmt.Sprintf("cd %s && %s git fetch && %s git fetch --tags", me.MyArgs["dest"], sshpass, sshpass)
-			reset_command := fmt.Sprintf("cd %s && git reset --hard %s", me.MyArgs["dest"], value)
-
-			if err := me.runMapOutput(fetch_command); err != nil {
-				return err
-			}
-
-			if err := me.runMapOutput(reset_command); err != nil {
-				return err
-			}
-
-		}
 	}
 
 	return nil
