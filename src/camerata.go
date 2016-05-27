@@ -11,6 +11,7 @@ import (
 	_ "modules/commandmodule"
 	_ "modules/copymodule"
 	_ "modules/pipmodule"
+	_ "modules/gitmodule"
 	_ "modules/testmodule"
 	"os"
 	"output"
@@ -20,7 +21,7 @@ import (
 )
 
 const (
-	VERSION      = "1.2.2"
+	VERSION      = "1.2.3"
 	VERSION_NAME = "Jake"
 )
 
