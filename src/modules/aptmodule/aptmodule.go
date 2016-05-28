@@ -49,6 +49,8 @@ func (me *Apt) Prepare(host string, sshconn *camssh.SshConnection) error {
 	me.Host = host
 	me.Sshconn = sshconn
 
+	me.commands = []string{}
+
 	if value, ok := me.MyArgs["update_cache"]; ok {
 		if value == "yes" {
 			me.commands = append(me.commands, "DEBIAN_FRONTEND=noninteractive apt-get -y update")

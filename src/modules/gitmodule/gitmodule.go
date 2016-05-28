@@ -59,6 +59,8 @@ func (me *Git) Prepare(host string, sshconn *camssh.SshConnection) error {
 	me.Host = host
 	me.Sshconn = sshconn
 
+	me.commands = []string{}
+
 	if _, ok := me.MyArgs["dest"]; !ok {
 		return errors.New("Missing 'dest' argument")
 	}

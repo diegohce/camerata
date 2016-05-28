@@ -60,6 +60,8 @@ func (me *Pip) Prepare(host string, sshconn *camssh.SshConnection) error {
 	me.Host = host
 	me.Sshconn = sshconn
 
+	me.commands = []string{}
+
 	_, reqs := me.MyArgs["requirements"]
 	_, pack := me.MyArgs["name"]
 
