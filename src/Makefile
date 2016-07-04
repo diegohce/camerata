@@ -1,5 +1,5 @@
 GOOS=linux
-GOFILES_main=camerata.go inventory.go
+GOFILES_main=camerata.go inventory.go version.go
 
 all: build_camerata
 

@@ -10,19 +10,15 @@ import (
 	_ "modules/aptmodule"
 	_ "modules/commandmodule"
 	_ "modules/copymodule"
-	_ "modules/pipmodule"
 	_ "modules/gitmodule"
+	_ "modules/pipmodule"
+	_ "modules/rcopymodule"
 	_ "modules/testmodule"
 	"os"
 	"output"
 	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
-)
-
-const (
-	VERSION      = "1.2.3"
-	VERSION_NAME = "Jake"
 )
 
 func askpasswords(args *cliargs.Arguments) error {

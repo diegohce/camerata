@@ -23,7 +23,7 @@ type Pip struct {
 
 func init() {
 
-	pipmodule_description := `pyhthon modules dependencies.
+	pipmodule_description := `python modules dependencies.
 	
 		*name=pip_package_name
 		*requirements=/path/to/requirements.txt
