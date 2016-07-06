@@ -11,6 +11,7 @@ import (
 	"os"
 	"output"
 	//	"strconv"
+	"path"
 	"strings"
 	//	"time"
 )
@@ -52,13 +53,16 @@ func (me *Rcopy) Prepare(host string, sshconn *camssh.SshConnection) error {
 	me.commands = []string{}
 
 	source, ok := me.MyArgs["source"]
-	target, ok := me.MyArgs["target"]
-
 	if !ok {
-		return errors.New("Missing 'filename' argument.")
+		return errors.New("Missing 'source' argument.")
 	}
 
-	me.commands = strings.Split(filename, "|")
+	_, ok := me.MyArgs["target"]
+	if !ok {
+		return errors.New("Missing 'target' argument.")
+	}
+
+	me.commands = strings.Split(source, "|")
 
 	return nil
 }
@@ -75,11 +79,83 @@ func (me *Rcopy) Run() error {
 		//			return err
 		//		}
 
+		fname := path.Base(command)
+
+		fullname := path.Join(me.MyArgs["target"], fname+"_"+me.Host)
+		fmt.Println(fullname)
+
+		cmd := "cat " + command
+		if err := me.runMapOutputToFile(cmd, fullname); err != nil {
+			//if err := me.runMapOutput(cmd); err != nil {
+			return err
+		}
+
 		me.Stdout.Println("...Done")
 
 	}
 
 	return nil
+
+}
+
+func (me *Rcopy) getFileWriter(filename string) (*os.File, error) {
+
+	fw, err := os.Create(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return fw, nil
+
+}
+
+func (me *Rcopy) runMapOutputToFile(command string, filename string) error {
+
+	file_writer, err := me.getFileWriter(filename)
+	if err != nil {
+		return err
+	}
+	defer file_writer.Close()
+
+	session, err := me.Sshconn.Client.NewSession()
+	if err != nil {
+		panic("Failed to create session: " + err.Error())
+	}
+	defer session.Close()
+
+	var commandline string
+
+	if me.Args.Sudo && me.Args.User != "root" {
+		commandline = fmt.Sprintf("sudo -S -- bash -s <<CMD\n%s\n%s\nCMD", me.Args.Pass, command)
+	} else {
+		commandline = command
+	}
+
+	r_stdin, _ := session.StdinPipe()
+	defer r_stdin.Close()
+
+	r_stdout, _ := session.StdoutPipe()
+	r_stderr, _ := session.StderrPipe()
+
+	go func() {
+		//io.Copy(file_writer, r_stdout)
+		//io.Copy(os.Stdout, r_stdout)
+		io.Copy(os.Stderr, r_stderr)
+	}()
+
+	var gof_error error
+
+	go func() {
+		session.Stdin = os.Stdin
+		if gof_error = session.Run(commandline); gof_error != nil {
+			return
+		}
+	}()
+
+	//Sync copy
+	io.Copy(file_writer, r_stdout)
+
+	return gof_error
 
 }
 
