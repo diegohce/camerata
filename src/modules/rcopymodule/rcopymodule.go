@@ -24,7 +24,8 @@ type Rcopy struct {
 func init() {
 
 	rcopymodule_description := `Copy remote files.
-		filename=/file/to/grab1[|/file/to/grab2...|/file/to/grab#
+		source=/file/to/grab1[|/file/to/grab2...|/file/to/grab#
+		target=/local/destination/dir
 		
 		`
 
@@ -50,7 +51,8 @@ func (me *Rcopy) Prepare(host string, sshconn *camssh.SshConnection) error {
 
 	me.commands = []string{}
 
-	filename, ok := me.MyArgs["filename"]
+	source, ok := me.MyArgs["source"]
+	target, ok := me.MyArgs["target"]
 
 	if !ok {
 		return errors.New("Missing 'filename' argument.")
