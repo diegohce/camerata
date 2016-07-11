@@ -93,7 +93,7 @@ This is you servers inventory list.
   
   sudo_nopass=false # or true if sudo does not ask for password.
 	
-	use_bastion=false # or true if we need to jump through the [bastion] host.
+  use_bastion=false # or true if we need to jump through the [bastion] host.
 
   [servers.some_other_server]
   host="other_ip_or_hostname"
@@ -110,10 +110,14 @@ Butt (double t intended ;) if you have a **[[modules]]** section on your invento
 
 At the time of this writing, the following modules are available:
 
+- about
 - test
 - copy
 - command
-- apt (unstable version)
+- apt (unstable yet)
+- git
+- pip
+- rcopy
 
 Execute camerata with *--modules* to get a list of available modules and how to use them.
 
