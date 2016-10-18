@@ -54,8 +54,7 @@ func (me *Apt) Prepare(host string, sshconn *camssh.SshConnection) error {
 	if value, ok := me.MyArgs["update_cache"]; ok {
 		if value == "yes" {
 			me.commands = append(me.commands, "DEBIAN_FRONTEND=noninteractive apt-get -y update")
-		}
-		{
+		} else {
 			d, err := time.ParseDuration(value)
 			fmt.Println("Duration", d)
 			if err != nil {
